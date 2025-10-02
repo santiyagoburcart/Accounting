@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به پنل مدیریت</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #1a1b26;
+            color: #c0caf5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .glass-card {
+            background: rgba(41, 42, 61, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            width: 100%;
+            max-width: 400px;
+            padding: 2.5rem;
+        }
+        .form-input {
+            background-color: #24283b;
+            border: 1px solid #414868;
+            color: #c0caf5;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #7aa2f7;
+            box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.3);
+        }
+        .btn-gradient {
+            background-image: linear-gradient(to right, #bb9af7, #7aa2f7);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(187, 154, 247, 0.4);
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(122, 162, 247, 0.5);
+        }
+        /* استایل برای پیام خطای ورود */
+        .error-message-box {
+            background-color: rgba(247, 118, 142, 0.1);
+            border: 1px solid #f7768e;
+            color: #f7768e;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-card">
+        <h1 class="text-3xl font-bold text-center mb-8">ورود به پنل</h1>
+
+        <!-- نمایش پیام خطا در صورت وجود -->
+        {% if form.errors %}
+            <div class="error-message-box">
+                <p>نام کاربری یا رمز عبور اشتباه است. لطفا دوباره تلاش کنید.</p>
+            </div>
+        {% endif %}
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div>
+                <label for="id_username" class="block mb-2 text-sm font-medium">نام کاربری</label>
+                <input type="text" name="username" id="id_username" class="form-input">
+            </div>
+            <div>
+                <label for="id_password" class="block mb-2 text-sm font-medium">رمز عبور</label>
+                <input type="password" name="password" id="id_password" class="form-input">
+            </div>
+            <button type="submit" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg">
+                ورود
+            </button>
+        </form>
+    </div>
+</body>
+</html>
+

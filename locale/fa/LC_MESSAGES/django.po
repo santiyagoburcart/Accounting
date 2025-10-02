@@ -1,0 +1,396 @@
+# Django-Shop
+# Copyright (C) 2025
+# This file is distributed under the same license as the Django-Shop package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Django-Shop\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-02 15:48+0200\n"
+"PO-Revision-Date: 2025-10-02 12:35+0000\n"
+"Last-Translator: FIRST AUTHOR <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: Accounting/settings.py:116
+msgid "Persian"
+msgstr ""
+
+#: Accounting/settings.py:117
+msgid "English"
+msgstr ""
+
+#: dashboard/forms.py:10 dashboard/models.py:13
+msgid "Payment Date (Shamsi)"
+msgstr "تاریخ پرداخت (شمسی)"
+
+#: dashboard/forms.py:26
+#: dashboard/templates/dashboard/customer_dashboard.html:92
+msgid "Paid"
+msgstr "پرداخت شده"
+
+#: dashboard/forms.py:27 dashboard/models.py:8
+msgid "Full Name"
+msgstr "نام و نام خانوادگی"
+
+#: dashboard/forms.py:28 dashboard/models.py:9
+msgid "Expiration Date (Gregorian)"
+msgstr "تاریخ سررسید (میلادی)"
+
+#: dashboard/forms.py:29 dashboard/models.py:10
+msgid "Price"
+msgstr "مبلغ"
+
+#: dashboard/forms.py:30 dashboard/models.py:11
+msgid "Giga"
+msgstr "گیگ"
+
+#: dashboard/forms.py:31 dashboard/models.py:12
+msgid "Phone Number"
+msgstr "شماره تماس"
+
+#: dashboard/forms.py:32 dashboard/models.py:15
+msgid "Referrer"
+msgstr "معرف"
+
+#: dashboard/forms.py:33 dashboard/models.py:16
+msgid "Bank Name"
+msgstr "اسم بانک"
+
+#: dashboard/forms.py:38 dashboard/models.py:39
+msgid "Spending Date (Shamsi)"
+msgstr "تاریخ هزینه (شمسی)"
+
+#: dashboard/forms.py:50 dashboard/models.py:40
+msgid "Issue"
+msgstr "موضوع"
+
+#: dashboard/forms.py:51 dashboard/forms.py:71 dashboard/models.py:41
+#: dashboard/models.py:65
+msgid "Description"
+msgstr "توضیحات"
+
+#: dashboard/forms.py:52 dashboard/forms.py:72 dashboard/models.py:42
+#: dashboard/models.py:66
+msgid "Amount"
+msgstr ""
+
+#: dashboard/forms.py:53 dashboard/models.py:43
+msgid "Is it a server cost?"
+msgstr "آیا هزینه سرور است؟"
+
+#: dashboard/forms.py:59 dashboard/models.py:63
+msgid "Deposit Date (Shamsi)"
+msgstr "تاریخ واریز (شمسی)"
+
+#: dashboard/forms.py:70 dashboard/models.py:64
+msgid "Depositor Name"
+msgstr "نام واریز کننده"
+
+#: dashboard/forms.py:86
+msgid "First Name"
+msgstr "نام"
+
+#: dashboard/forms.py:87
+msgid "Last Name"
+msgstr "نام خانوادگی"
+
+#: dashboard/forms.py:88
+msgid "Email"
+msgstr "ایمیل"
+
+#: dashboard/forms.py:95
+msgid "Old password"
+msgstr "رمز عبور فعلی"
+
+#: dashboard/forms.py:97
+msgid "New password"
+msgstr "رمز عبور جدید"
+
+#: dashboard/forms.py:99
+msgid "New password confirmation"
+msgstr "تکرار رمز عبور جدید"
+
+#: dashboard/models.py:7 dashboard/models.py:38 dashboard/models.py:62
+msgid "Creator Admin"
+msgstr "ادمین ثبت کننده"
+
+#: dashboard/models.py:14
+msgid "Paid Status"
+msgstr "وضعیت پرداخت"
+
+#: dashboard/models.py:28
+msgid "Invalid Format"
+msgstr "فرمت نامعتبر"
+
+#: dashboard/models.py:29 dashboard/models.py:53 dashboard/models.py:76
+msgid "Not Set"
+msgstr "ثبت نشده"
+
+#: dashboard/models.py:32
+msgid "Customer"
+msgstr "مشتری"
+
+#: dashboard/models.py:33 dashboard/templates/dashboard/base.html:49
+msgid "Customers"
+msgstr "مشتریان"
+
+#: dashboard/models.py:47
+msgid "Expense without issue"
+msgstr "هزینه بدون موضوع"
+
+#: dashboard/models.py:56
+msgid "Expense"
+msgstr "هزینه"
+
+#: dashboard/models.py:57
+msgid "Expenses"
+msgstr "هزینه‌ها"
+
+#: dashboard/models.py:70
+msgid "Income without name"
+msgstr "درآمد بدون نام"
+
+#: dashboard/models.py:79
+msgid "Other Income"
+msgstr "سایر درآمدها"
+
+#: dashboard/models.py:80
+msgid "Other Incomes"
+msgstr "سایر درآمدها"
+
+#: dashboard/templates/dashboard/base.html:7
+msgid "Accounting Panel"
+msgstr "پنل حسابداری"
+
+#: dashboard/templates/dashboard/base.html:45
+#: dashboard/templates/dashboard/financial_report.html:4
+msgid "Financial Report"
+msgstr "گزارش مالی"
+
+#: dashboard/templates/dashboard/base.html:53
+msgid "Profile"
+msgstr "پروفایل"
+
+#: dashboard/templates/dashboard/base.html:58
+msgid "Logout"
+msgstr "خروج"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:4
+msgid "Customer Management"
+msgstr "مدیریت مشتریان"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:5
+msgid "Customer Management Dashboard"
+msgstr "داشبورد مدیریت مشتریان"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:46
+msgid "Total Gig Sold"
+msgstr "کل گیگ فروخته شده"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:47
+msgid "Gig"
+msgstr "گیگ"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:50
+msgid "Total Paid Revenue"
+msgstr "کل درآمد پرداخت شده"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:54
+msgid "Total Unpaid"
+msgstr "کل بدهی"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:62
+msgid "Add New Customer"
+msgstr "افزودن مشتری جدید"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:66
+msgid "Add Customer"
+msgstr "افزودن مشتری"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:72
+#, fuzzy
+#| msgid "Customers"
+msgid "Customers List"
+msgstr "مشتریان"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:77
+msgid "Name"
+msgstr "نام"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:78
+msgid "Expiration"
+msgstr "سررسید"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:79
+#, fuzzy
+#| msgid "Payment Date (Shamsi)"
+msgid "Payment Date"
+msgstr "تاریخ پرداخت (شمسی)"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:80
+msgid "Status"
+msgstr "وضعیت"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:81
+msgid "Actions"
+msgstr "عملیات"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:94
+msgid "Unpaid"
+msgstr "پرداخت نشده"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:100
+#: dashboard/templates/dashboard/financial_report.html:69
+#: dashboard/templates/dashboard/financial_report.html:100
+msgid "Are you sure?"
+msgstr "آیا مطمئن هستید؟"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:108
+msgid "No customers to display."
+msgstr "مشتری برای نمایش وجود ندارد."
+
+#: dashboard/templates/dashboard/edit_customer.html:4
+msgid "Edit Customer"
+msgstr "ویرایش مشتری"
+
+#: dashboard/templates/dashboard/edit_customer.html:5
+msgid "Edit Customer Information"
+msgstr "ویرایش اطلاعات مشتری"
+
+#: dashboard/templates/dashboard/edit_customer.html:25
+msgid "Editing"
+msgstr "در حال ویرایش"
+
+#: dashboard/templates/dashboard/edit_customer.html:31
+msgid "Save Changes"
+msgstr "ذخیره تغییرات"
+
+#: dashboard/templates/dashboard/edit_customer.html:34
+msgid "Cancel"
+msgstr "انصراف"
+
+#: dashboard/templates/dashboard/financial_report.html:5
+msgid "Monthly Financial Report"
+msgstr "گزارش مالی ماهانه"
+
+#: dashboard/templates/dashboard/financial_report.html:22
+msgid "Show report for month:"
+msgstr "نمایش گزارش برای ماه:"
+
+#: dashboard/templates/dashboard/financial_report.html:24
+msgid "All Months"
+msgstr "همه ماه‌ها"
+
+#: dashboard/templates/dashboard/financial_report.html:35
+msgid "Total Income"
+msgstr "کل درآمد"
+
+#: dashboard/templates/dashboard/financial_report.html:39
+msgid "Total Expenses"
+msgstr "کل هزینه‌ها"
+
+#: dashboard/templates/dashboard/financial_report.html:43
+msgid "Net Profit"
+msgstr "سود خالص"
+
+#: dashboard/templates/dashboard/financial_report.html:52
+msgid "Add Income (Server & Support)"
+msgstr "ثبت درآمد (سرور و پشتیبانی)"
+
+#: dashboard/templates/dashboard/financial_report.html:56
+msgid "Add Income"
+msgstr "ثبت درآمد"
+
+#: dashboard/templates/dashboard/financial_report.html:59
+msgid "Incomes List"
+msgstr "لیست درآمدها"
+
+#: dashboard/templates/dashboard/financial_report.html:76
+msgid "No income has been recorded."
+msgstr "درآمدی ثبت نشده است."
+
+#: dashboard/templates/dashboard/financial_report.html:83
+msgid "Add Daily Expense"
+msgstr "ثبت هزینه‌های روزانه"
+
+#: dashboard/templates/dashboard/financial_report.html:87
+msgid "Add Expense"
+msgstr "ثبت هزینه"
+
+#: dashboard/templates/dashboard/financial_report.html:90
+msgid "Expenses List"
+msgstr "لیست هزینه‌ها"
+
+#: dashboard/templates/dashboard/financial_report.html:107
+msgid "No expense has been recorded."
+msgstr "هزینه‌ای ثبت نشده است."
+
+#: dashboard/templates/dashboard/profile.html:4
+msgid "User Profile"
+msgstr "پروفایل کاربری"
+
+#: dashboard/templates/dashboard/profile.html:5
+msgid "Profile Management"
+msgstr "مدیریت پروفایل"
+
+#: dashboard/templates/dashboard/profile.html:22
+msgid "User Information"
+msgstr "اطلاعات کاربری"
+
+#: dashboard/templates/dashboard/profile.html:27
+msgid "Save Information"
+msgstr "ذخیره اطلاعات"
+
+#: dashboard/templates/dashboard/profile.html:33
+#: dashboard/templates/dashboard/profile.html:38
+msgid "Change Password"
+msgstr "تغییر رمز عبور"
+
+#: dashboard/views.py:74
+msgid "Expense added successfully."
+msgstr "هزینه با موفقیت ثبت شد."
+
+#: dashboard/views.py:83
+msgid "Income added successfully."
+msgstr "درآمد با موفقیت ثبت شد."
+
+#: dashboard/views.py:115
+#, python-brace-format
+msgid "Customer '{name}' added successfully."
+msgstr "مشتری «{name}» با موفقیت ثبت شد."
+
+#: dashboard/views.py:135
+#, python-brace-format
+msgid "Customer '{name}' updated successfully."
+msgstr "اطلاعات مشتری «{name}» با موفقیت به‌روز شد."
+
+#: dashboard/views.py:149
+msgid "Profile details updated successfully."
+msgstr "اطلاعات پروفایل شما با موفقیت به‌روز شد."
+
+#: dashboard/views.py:156
+msgid "Password changed successfully."
+msgstr "رمز عبور شما با موفقیت تغییر کرد."
+
+#: dashboard/views.py:159
+msgid "Please correct the errors below."
+msgstr "لطفاً خطاهای زیر را اصلاح کنید."
+
+#: dashboard/views.py:167
+#, python-brace-format
+msgid "Customer '{name}' deleted successfully."
+msgstr "مشتری «{name}» با موفقیت حذف شد."
+
+#: dashboard/views.py:176
+msgid "Expense deleted successfully."
+msgstr "هزینه با موفقیت حذف شد."
+
+#: dashboard/views.py:184
+msgid "Income deleted successfully."
+msgstr "درآمد با موفقیت حذف شد."

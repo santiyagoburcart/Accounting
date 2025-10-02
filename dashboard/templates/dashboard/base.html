@@ -1,0 +1,84 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'fa' %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans "Accounting Panel" %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block extra_head %}{% endblock %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #1a1b26; color: #c0caf5; }
+        .glass-card { background: rgba(41, 42, 61, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        .form-input, .jdatepicker, textarea, input[type="date"], input[type="text"], input[type="number"], input[type="password"], input[type="email"], select { background-color: #24283b; border: 1px solid #414868; color: #c0caf5; border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; transition: border-color 0.3s, box-shadow 0.3s; }
+        .form-input:focus, .jdatepicker:focus, textarea:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus { outline: none; border-color: #bb9af7; box-shadow: 0 0 0 3px rgba(187, 154, 247, 0.3); }
+        .btn-gradient { background-image: linear-gradient(to right, #f7768e, #bb9af7); transition: all 0.3s ease; box-shadow: 0 4px 15px 0 rgba(187, 154, 247, 0.4); }
+        .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 6px 20px 0 rgba(187, 154, 247, 0.5); }
+        .success-message { background-color: rgba(158, 206, 106, 0.1); border: 1px solid #9ece6a; color: #9ece6a; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; text-align: center; }
+        .error-message { color: #f7768e; font-size: 0.875rem; margin-top: 0.25rem; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-center md:text-start">{% block page_title %}{% endblock %}</h1>
+            <nav class="flex items-center flex-wrap justify-center gap-x-4 gap-y-2">
+                <!-- Language Switcher -->
+                <form action="{% url 'set_language' %}" method="post">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ request.get_full_path|slice:'3:' }}">
+                    <select name="language" onchange="this.form.submit()" class="form-input !w-auto !py-2 !px-3">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        {% get_available_languages as LANGUAGES %}
+                        {% get_language_info_list for LANGUAGES as languages %}
+                        {% for language in languages %}
+                            <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %}selected{% endif %}>
+                                {{ language.name_local }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                
+                <a href="{% url 'financial_report' %}" class="flex items-center text-lg {% if request.resolver_match.url_name == 'financial_report' %}text-purple-400{% else %}hover:text-purple-400{% endif %} transition">
+                    <i data-feather="pie-chart" class="{% if LANGUAGE_CODE == 'fa' %}ml-2{% else %}mr-2{% endif %}"></i>
+                    <span>{% trans "Financial Report" %}</span>
+                </a>
+                <a href="{% url 'customer_dashboard' %}" class="flex items-center text-lg {% if request.resolver_match.url_name == 'customer_dashboard' %}text-purple-400{% else %}hover:text-purple-400{% endif %} transition">
+                    <i data-feather="users" class="{% if LANGUAGE_CODE == 'fa' %}ml-2{% else %}mr-2{% endif %}"></i>
+                    <span>{% trans "Customers" %}</span>
+                </a>
+                <a href="{% url 'profile' %}" class="flex items-center text-lg hover:text-purple-400 transition">
+                    <i data-feather="user" class="{% if LANGUAGE_CODE == 'fa' %}ml-2{% else %}mr-2{% endif %}"></i>
+                    <span>{% trans "Profile" %}</span>
+                </a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-gradient text-white font-bold py-2 px-4 rounded-full">
+                        {% trans "Logout" %}
+                    </button>
+                </form>
+            </nav>
+        </header>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="success-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+        });
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
+

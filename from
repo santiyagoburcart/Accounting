@@ -1,0 +1,88 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
+from django.contrib import messages
+from .forms import CustomerForm
+from .models import Customer
+from django.db.models import Sum
+import jdatetime
+
+class CustomLoginView(LoginView):
+    template_name = 'dashboard/login.html'
+    redirect_authenticated_user = True
+
+@login_required
+def dashboard_view(request):
+    # پایه کوئری برای مشتریان کاربر لاگین کرده
+    customers_base = Customer.objects.filter(creator=request.user)
+
+    # مدیریت فیلتر ماه
+    selected_month = request.GET.get('month')
+    if selected_month and selected_month.isdigit():
+        month = int(selected_month)
+        current_year = jdatetime.date.today().year
+        
+        # محاسبه تاریخ شروع و پایان ماه شمسی به میلادی
+        start_date_jalali = jdatetime.date(current_year, month, 1)
+        if month < 12:
+            end_date_jalali = jdatetime.date(current_year, month + 1, 1)
+        else:
+            end_date_jalali = jdatetime.date(current_year + 1, 1, 1)
+        
+        start_date_gregorian = start_date_jalali.togregorian()
+        end_date_gregorian = end_date_jalali.togregorian()
+        
+        # فیلتر کردن مشتریان بر اساس ماه انتخابی (بر اساس تاریخ ثبت)
+        customers = customers_base.filter(created_at__gte=start_date_gregorian, created_at__lt=end_date_gregorian)
+        stats_queryset = customers
+    else:
+        customers = customers_base
+        stats_queryset = customers_base
+
+    # محاسبه آمارها بر اساس کوئری فیلتر شده
+    total_giga = stats_queryset.aggregate(total=Sum('giga'))['total'] or 0
+    total_revenue = stats_queryset.aggregate(total=Sum('price'))['total'] or 0
+    paid_amount = stats_queryset.filter(is_paid=True).aggregate(total=Sum('price'))['total'] or 0
+    unpaid_amount = total_revenue - paid_amount
+
+    if request.method == 'POST':
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            customer = form.save(commit=False)
+            customer.creator = request.user
+            customer.save()
+            messages.success(request, f"مشتری «{customer.name}» با موفقیت ثبت شد.")
+            return redirect('dashboard')
+    else:
+        form = CustomerForm()
+
+    # داده‌های ماه‌ها برای منوی کشویی فیلتر
+    months = {
+        1: "فروردین", 2: "اردیبهشت", 3: "خرداد",
+        4: "تیر", 5: "مرداد", 6: "شهریور",
+        7: "مهر", 8: "آبان", 9: "آذر",
+        10: "دی", 11: "بهمن", 12: "اسفند",
+    }
+
+    context = {
+        'form': form,
+        'customers': customers.order_by('-created_at'),
+        'total_giga': total_giga,
+        'total_revenue': total_revenue,
+        'paid_amount': paid_amount,
+        'unpaid_amount': unpaid_amount,
+        'months': months,
+        'selected_month': selected_month,
+    }
+    return render(request, 'dashboard/dashboard.html', context)
+
+
+@login_required
+def delete_customer(request, pk):
+    # اطمینان از اینکه مشتری وجود دارد و متعلق به کاربر فعلی است
+    customer = get_object_or_404(Customer, id=pk, creator=request.user)
+    if request.method == 'POST':
+        customer.delete()
+        messages.success(request, "مشتری با موفقیت حذف شد.")
+    return redirect('dashboard')
+

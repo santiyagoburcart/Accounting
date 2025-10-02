@@ -1,0 +1,116 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Customer Management" %}{% endblock %}
+{% block page_title %}{% trans "Customer Management Dashboard" %}{% endblock %}
+
+{% block extra_head %}
+    {{ form.media }}
+    <style>
+        .text-gradient { 
+            background: linear-gradient(to right, #f7768e, #bb9af7); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            display: inline-block; 
+        }
+        .form-container p { 
+            margin-bottom: 1rem; 
+        }
+        .form-container label { 
+            display: block; 
+            margin-bottom: 0.5rem; 
+            font-size: 0.875rem; 
+            font-weight: 500; 
+        }
+        .form-container .helptext { 
+            font-size: 0.75rem; 
+            color: #7aa2f7; 
+            margin-top: 0.25rem; 
+        }
+        .form-container ul.errorlist { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+        }
+        .form-container ul.errorlist li { 
+            color: #f7768e; 
+            font-size: 0.875rem; 
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="glass-card p-6">
+            <h3 class="text-lg text-gray-400">{% trans "Total Gig Sold" %}</h3>
+            <p class="text-3xl font-bold text-gradient">{{ total_giga }} {% trans "Gig" %}</p>
+        </div>
+        <div class="glass-card p-6">
+            <h3 class="text-lg text-gray-400">{% trans "Total Paid Revenue" %}</h3>
+            <p class="text-3xl font-bold text-gradient">{{ paid_amount|floatformat:0 }}</p>
+        </div>
+        <div class="glass-card p-6">
+            <h3 class="text-lg text-gray-400">{% trans "Total Unpaid" %}</h3>
+            <p class="text-3xl font-bold text-gradient">{{ unpaid_amount|floatformat:0 }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Form Card -->
+        <div class="lg:col-span-1 glass-card p-8">
+            <h2 class="text-2xl font-bold mb-6 text-start">{% trans "Add New Customer" %}</h2>
+            <form method="post" class="space-y-4 form-container">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg mt-4">{% trans "Add Customer" %}</button>
+            </form>
+        </div>
+
+        <!-- Customer List Card -->
+        <div class="lg:col-span-2 glass-card p-8">
+            <h2 class="text-2xl font-bold mb-6 text-start">{% trans "Customers List" %}</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-start">
+                    <thead class="border-b-2 border-gray-700">
+                        <tr>
+                            <th class="p-3 text-start">{% trans "Name" %}</th>
+                            <th class="p-3 text-start hidden md:table-cell">{% trans "Expiration" %}</th>
+                            <th class="p-3 text-start">{% trans "Payment Date" %}</th>
+                            <th class="p-3 text-start">{% trans "Status" %}</th>
+                            <th class="p-3 text-start">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr class="border-b border-gray-800 hover:bg-gray-700/20">
+                            <td class="p-3 font-bold">{{ customer.name }}</td>
+                            <td class="p-3 hidden md:table-cell">{{ customer.expire_date|date:"Y-m-d"|default:"-" }}</td>
+                            <td class="p-3">{{ customer.jalali_payment_date }}</td>
+                            <td class="p-3">
+                                {% if customer.is_paid %}
+                                    <span class="px-2 py-1 bg-green-500/20 text-green-300 rounded-full text-xs">{% trans "Paid" %}</span>
+                                {% else %}
+                                    <span class="px-2 py-1 bg-red-500/20 text-red-300 rounded-full text-xs">{% trans "Unpaid" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-3">
+                                <div class="flex items-center gap-2">
+                                    <a href="{% url 'edit_customer' customer.id %}" class="text-blue-400 hover:text-blue-600"><i data-feather="edit-2"></i></a>
+                                    <form method="post" action="{% url 'delete_customer' customer.id %}" onsubmit="return confirm('{% trans "Are you sure?" %}');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-400 hover:text-red-600"><i data-feather="trash-2"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center p-8 text-gray-500">{% trans "No customers to display." %}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

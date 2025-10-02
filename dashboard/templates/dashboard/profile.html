@@ -1,0 +1,45 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "User Profile" %}{% endblock %}
+{% block page_title %}{% trans "Profile Management" %}{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .form-container p { margin-bottom: 1rem; }
+        .form-container label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; }
+        .form-container .helptext { font-size: 0.75rem; color: #7aa2f7; margin-top: 0.25rem; }
+        .form-container ul.errorlist { list-style: none; padding: 0; margin: 0; }
+        .form-container ul.errorlist li { color: #f7768e; font-size: 0.875rem; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- User Details Form -->
+        <div class="glass-card p-8">
+            <h2 class="text-2xl font-bold mb-6 text-start">{% trans "User Information" %}</h2>
+            <form method="post" class="space-y-4 form-container">
+                {% csrf_token %}
+                {{ user_form.as_p }}
+                <button type="submit" name="change_details" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg mt-4">
+                    {% trans "Save Information" %}
+                </button>
+            </form>
+        </div>
+        <!-- Password Change Form -->
+        <div class="glass-card p-8">
+            <h2 class="text-2xl font-bold mb-6 text-start">{% trans "Change Password" %}</h2>
+            <form method="post" class="space-y-4 form-container">
+                {% csrf_token %}
+                {{ password_form.as_p }}
+                <button type="submit" name="change_password" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg mt-4">
+                    {% trans "Change Password" %}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

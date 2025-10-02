@@ -1,0 +1,41 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Customer" %}{% endblock %}
+{% block page_title %}{% trans "Edit Customer Information" %}{% endblock %}
+
+{% block extra_head %}
+    {{ form.media }}
+    <style>
+        .form-container p { margin-bottom: 1rem; }
+        .form-container label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; }
+        .form-container .helptext { font-size: 0.75rem; color: #7aa2f7; margin-top: 0.25rem; }
+        .form-container ul.errorlist { list-style: none; padding: 0; margin: 0; }
+        .form-container ul.errorlist li { color: #f7768e; font-size: 0.875rem; }
+        .form-container input[type="checkbox"] {
+            transform: scale(1.2);
+            {% if LANGUAGE_CODE == 'fa' %}margin-left: 0.5rem; margin-right: 0;{% else %}margin-right: 0.5rem; margin-left: 0;{% endif %}
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center py-8">
+    <div class="glass-card p-8 w-full max-w-2xl">
+        <h1 class="text-3xl font-bold mb-6 text-center">{% trans "Editing" %} «{{ customer.name }}»</h1>
+        <form method="post" class="space-y-4 form-container text-start">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="flex flex-col md:flex-row items-center gap-4 pt-4">
+                <button type="submit" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg">
+                    {% trans "Save Changes" %}
+                </button>
+                <a href="{% url 'customer_dashboard' %}" class="w-full text-center py-3 px-4 rounded-lg bg-gray-600 hover:bg-gray-700 transition">
+                    {% trans "Cancel" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

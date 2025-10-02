@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد مدیریت</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Media for Jalali Date Picker -->
+    {{ form.media }}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        body { 
+            font-family: 'Vazirmatn', sans-serif; 
+            background-color: #1a1b26; 
+            color: #c0caf5;
+        }
+        .glass-card { 
+            background: rgba(41, 42, 61, 0.6); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 1.5rem; 
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .form-input, .jdatepicker, input[type="date"] { 
+            background-color: #24283b; 
+            border: 1px solid #414868; 
+            color: #c0caf5; 
+            border-radius: 0.75rem; 
+            padding: 0.75rem 1rem; 
+            width: 100%; 
+            transition: border-color 0.3s, box-shadow 0.3s; 
+        }
+        .form-input:focus, .jdatepicker:focus, input[type="date"]:focus { 
+            outline: none; 
+            border-color: #bb9af7; 
+            box-shadow: 0 0 0 3px rgba(187, 154, 247, 0.3);
+        }
+        .btn-gradient { 
+            background-image: linear-gradient(to right, #f7768e, #bb9af7); 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 15px 0 rgba(187, 154, 247, 0.4);
+        }
+        .btn-gradient:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px 0 rgba(187, 154, 247, 0.5);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #f7768e, #bb9af7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        .error-message { 
+            color: #f7768e; 
+            font-size: 0.875rem; 
+            margin-top: 0.25rem;
+        }
+        .success-message { 
+            background-color: rgba(158, 206, 106, 0.1); 
+            border: 1px solid #9ece6a; 
+            color: #9ece6a; 
+            padding: 1rem; 
+            border-radius: 0.75rem; 
+            margin-bottom: 1.5rem; 
+            text-align: center;
+        }
+        input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-center md:text-right">داشبورد مدیریت</h1>
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <!-- لینک جدید برای پروفایل -->
+                <a href="{% url 'profile' %}" class="flex items-center text-lg hover:text-purple-400 transition">
+                    <i data-feather="user" class="ml-2"></i>
+                    <span>پروفایل {{ user.username }}</span>
+                </a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-gradient text-white font-bold py-2 px-4 rounded-full">
+                        خروج
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'success' %}
+                    <div class="success-message">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="glass-card p-6 flex items-center">
+                <div>
+                    <h3 class="text-lg text-gray-400">کل گیگ فروخته شده</h3>
+                    <p class="text-3xl font-bold text-gradient">{{ total_giga }} گیگ</p>
+                </div>
+            </div>
+            <div class="glass-card p-6 flex items-center">
+                <div>
+                    <h3 class="text-lg text-gray-400">جمع کل درآمد</h3>
+                    <p class="text-3xl font-bold text-gradient">{{ total_revenue|floatformat:0 }} تومان</p>
+                </div>
+            </div>
+            <div class="glass-card p-6 flex items-center">
+                <div>
+                    <h3 class="text-lg text-gray-400">پرداخت شده</h3>
+                    <p class="text-3xl font-bold text-gradient">{{ paid_amount|floatformat:0 }} تومان</p>
+                </div>
+            </div>
+            <div class="glass-card p-6 flex items-center">
+                <div>
+                    <h3 class="text-lg text-gray-400">بدهکار</h3>
+                    <p class="text-3xl font-bold text-gradient">{{ unpaid_amount|floatformat:0 }} تومان</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Form Card -->
+            <div class="lg:col-span-1 glass-card p-8">
+                <h2 class="text-2xl font-bold mb-6 flex items-center">
+                    <i data-feather="user-plus" class="w-8 h-8 ml-3"></i>
+                    افزودن مشتری جدید
+                </h2>
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <p class="error-message">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg mt-4">
+                        ثبت مشتری
+                    </button>
+                </form>
+            </div>
+
+            <!-- Customer List Card -->
+            <div class="lg:col-span-2 glass-card p-8">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-bold flex items-center">
+                        <i data-feather="list" class="w-8 h-8 ml-3"></i>
+                        لیست مشتریان
+                    </h2>
+                    <form method="get" class="flex items-center w-full md:w-auto">
+                        <select name="month" class="form-input" onchange="this.form.submit()">
+                            <option value="">همه ماه‌ها</option>
+                            {% for month_num, month_name in months.items %}
+                                <option value="{{ month_num }}" {% if selected_month == month_num|stringformat:"s" %}selected{% endif %}>{{ month_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right text-sm">
+                        <thead class="border-b-2 border-gray-700">
+                            <tr>
+                                <th class="p-3">نام</th>
+                                <th class="p-3 hidden md:table-cell">سررسید (میلادی)</th>
+                                <th class="p-3">پرداخت (شمسی)</th>
+                                <th class="p-3">وضعیت</th>
+                                <th class="p-3">عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in customers %}
+                            <tr class="border-b border-gray-800 hover:bg-gray-700/20">
+                                <td class="p-3">
+                                    <div class="font-bold">{{ customer.name }}</div>
+                                    <div class="text-gray-400 md:hidden">{{ customer.phone_number }}</div>
+                                </td>
+                                <td class="p-3 hidden md:table-cell">{{ customer.expire_date|date:"Y-m-d"|default:"-" }}</td>
+                                <td class="p-3">{{ customer.jalali_payment_date }}</td>
+                                <td class="p-3">
+                                    {% if customer.is_paid %}
+                                        <span class="px-2 py-1 bg-green-500/20 text-green-300 rounded-full text-xs">پرداخت شده</span>
+                                    {% else %}
+                                        <span class="px-2 py-1 bg-red-500/20 text-red-300 rounded-full text-xs">پرداخت نشده</span>
+                                    {% endif %}
+                                </td>
+                                <td class="p-3">
+                                    <div class="flex items-center space-x-2 space-x-reverse">
+                                        <!-- دکمه جدید برای ویرایش -->
+                                        <a href="{% url 'edit_customer' customer.id %}" class="text-blue-400 hover:text-blue-600">
+                                            <i data-feather="edit-2"></i>
+                                        </a>
+                                        <form method="post" action="{% url 'delete_customer' customer.id %}" onsubmit="return confirm('آیا از حذف این مشتری مطمئن هستید؟');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="text-red-400 hover:text-red-600">
+                                                <i data-feather="trash-2"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center p-8 text-gray-500">
+                                    مشتری برای نمایش وجود ندارد.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+        });
+    </script>
+</body>
+</html>
+

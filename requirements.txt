@@ -1,0 +1,10 @@
+asgiref==3.9.2
+Django==5.2.6
+django-jalali-date==2.0.0
+gunicorn==23.0.0
+jalali_core==1.0.0
+jdatetime==5.2.0
+packaging==25.0
+psycopg2-binary==2.9.10
+sqlparse==0.5.3
+typing_extensions==4.15.0
