@@ -1,0 +1,189 @@
+/* --- متغیرهای تم برای حالت تاریک و روشن --- */
+:root, [data-theme="dark"] {
+    --bg-primary: #1a1b26;
+    --bg-secondary: #24283b;
+    --bg-surface: rgba(41, 42, 61, 0.6);
+    --text-primary: #c0caf5;
+    --text-secondary: #a9b1d6;
+    --border-color: #414868;
+    --accent-purple: #bb9af7;
+    --accent-pink: #f7768e;
+    --accent-green: #9ece6a;
+    --accent-blue: #7aa2f7;
+    --accent-red: #f7768e;
+}
+
+[data-theme="light"] {
+    --bg-primary: #e1e2e7;
+    --bg-secondary: #ffffff;
+    --bg-surface: rgba(255, 255, 255, 0.8);
+    --text-primary: #3d59a1;
+    --text-secondary: #565f89;
+    --border-color: #dcdcdc;
+}
+
+/* --- استایل‌های پایه --- */
+body {
+    font-family: 'Vazirmatn', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.glass-card {
+    background: var(--bg-surface);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* --- استایل فرم‌ها --- */
+.form-input, .jdatepicker, textarea, input[type="date"], input[type="text"], input[type="number"], input[type="password"], input[type="email"], select {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    transition: all 0.3s;
+}
+.form-input:focus, .jdatepicker:focus, textarea:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-purple);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-purple) 30%, transparent);
+}
+
+.form-container p { margin-bottom: 1rem; }
+.form-container label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); }
+.form-container .helptext { font-size: 0.75rem; color: var(--accent-blue); margin-top: 0.25rem; }
+.form-container ul.errorlist { padding: 0; margin: 0; }
+
+/* --- استایل دکمه‌ها --- */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    text-align: center;
+    cursor: pointer;
+}
+.btn-gradient {
+    background-image: linear-gradient(to right, var(--accent-pink), var(--accent-purple));
+    box-shadow: 0 4px 15px 0 color-mix(in srgb, var(--accent-purple) 40%, transparent);
+    color: white;
+}
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 color-mix(in srgb, var(--accent-purple) 50%, transparent);
+}
+.btn-secondary {
+    background-color: var(--border-color);
+    color: var(--text-secondary);
+}
+.btn-secondary:hover {
+    background-color: color-mix(in srgb, var(--border-color) 80%, black);
+}
+
+
+/* --- استایل‌های خاص کامپوننت‌ها --- */
+.success-message { background-color: rgba(158, 206, 106, 0.1); border: 1px solid #9ece6a; color: #9ece6a; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; text-align: center; }
+.error-message, .errorlist li { color: var(--accent-red); font-size: 0.875rem; margin-top: 0.25rem; list-style: none; }
+.text-success { color: #9ece6a; }
+.text-danger { color: #f7768e; }
+
+/* استایل آپلود فایل سفارشی */
+.custom-file-upload {
+    border: 2px dashed var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+.custom-file-upload:hover {
+    border-color: var(--accent-purple);
+    background-color: color-mix(in srgb, var(--accent-purple) 10%, transparent);
+}
+
+/* استایل سوییچ (Toggle Switch) */
+.toggle-wrapper { display: flex; align-items: center; gap: 0.75rem; }
+.toggle-switch-label { cursor: pointer; }
+.toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; background-color: var(--border-color); border-radius: 9999px; transition: background-color 0.2s ease-in-out; }
+.toggle-switch::before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background-color: white; top: 4px; inset-inline-start: 4px; transition: transform 0.2s ease-in-out; }
+input[type="checkbox"]:checked + .toggle-switch { background-color: var(--accent-purple); }
+input[type="checkbox"]:checked + .toggle-switch::before { transform: translateX(22px); }
+html[dir="rtl"] input[type="checkbox"]:checked + .toggle-switch::before { transform: translateX(-22px); }
+.form-container input[type="checkbox"] { display: none; }
+
+/* استایل دکمه‌های وضعیت */
+.status-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 500; font-size: 0.875rem; border: 1px solid transparent; }
+.status-paid { background-color: rgba(158, 206, 106, 0.1); color: #9ece6a; border-color: rgba(158, 206, 106, 0.5); }
+.status-unpaid { background-color: rgba(247, 118, 142, 0.1); color: #f7768e; border-color: rgba(247, 118, 142, 0.5); }
+
+/* استایل نمودارهای دایره‌ای */
+.radial-progress { --size: 60px; --thickness: 6px; width: var(--size); height: var(--size); border-radius: 50%; background: conic-gradient(var(--clr, #7aa2f7) calc(var(--value) * 1%), var(--border-color) 0); display: grid; place-content: center; position: relative; }
+.radial-progress::before { content: ''; position: absolute; inset: var(--thickness); background: var(--bg-secondary); border-radius: 50%; }
+.radial-progress-label { position: relative; font-size: 1rem; font-weight: bold; }
+
+/* استایل مودال */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-content {
+    transform: scale(0.95);
+    transition: transform 0.3s;
+}
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+/* استایل Date Picker */
+.datepicker-plot-area {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.datepicker-days-view .table-days td.day.today, .datepicker-days-view .table-days td.day.selected {
+    background-color: var(--accent-purple) !important;
+    color: white !important;
+    border-radius: 50%;
+}
+.datepicker-navigator .pwt-btn-next, .datepicker-navigator .pwt-btn-prev {
+    color: var(--text-primary) !important;
+}
+.datepicker-navigator .pwt-btn-switch {
+    color: var(--text-primary) !important;
+    font-weight: bold;
+}
+.datepicker-days-view .table-days th {
+    color: var(--text-secondary) !important;
+}
+.datepicker-days-view .table-days td.day {
+    color: var(--text-primary) !important;
+}
+.datepicker-days-view .table-days td.day.old {
+    color: var(--border-color) !important;
+}
+

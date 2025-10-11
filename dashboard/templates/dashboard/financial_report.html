@@ -1,113 +1,348 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
+{% load mathfilters %}
 
 {% block title %}{% trans "Financial Report" %}{% endblock %}
-{% block page_title %}{% trans "Monthly Financial Report" %}{% endblock %}
+{% block page_title %}{% trans "Financial Dashboard" %}{% endblock %}
 
 {% block extra_head %}
     {{ expense_form.media }}
     {{ other_income_form.media }}
-    <style>
-        .text-success { color: #9ece6a; }
-        .text-danger { color: #f7768e; }
-        .form-container p { margin-bottom: 1rem; }
-        .form-container label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
-    <!-- Month Filter -->
-    <div class="glass-card p-4 mb-8">
-        <form method="get" class="flex flex-col md:flex-row items-center gap-4">
-            <label for="month-select" class="font-bold">{% trans "Show report for month:" %}</label>
-            <select name="month" id="month-select" class="form-input w-full md:w-auto" onchange="this.form.submit()">
-                <option value="">{% trans "All Months" %}</option>
-                {% for month_num, month_name in months.items %}
-                    <option value="{{ month_num }}" {% if selected_month == month_num|stringformat:"s" %}selected{% endif %}>{{ month_name }}</option>
-                {% endfor %}
-            </select>
-        </form>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content Column -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Total Income" %}</h3>
+                        <p class="text-3xl font-bold text-success">{{ total_income|floatformat:0 }}</p>
+                    </div>
+                    <div class="radial-progress" style="--value:100; --clr: #9ece6a;">
+                        <span class="radial-progress-label">100%</span>
+                    </div>
+                </div>
+                <div class="glass-card p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Total Expenses" %}</h3>
+                        <p class="text-3xl font-bold text-danger">{{ total_expenses|floatformat:0 }}</p>
+                    </div>
+                    {% if total_income > 0 %}
+                    <div class="radial-progress" style="--value:{% widthratio total_expenses total_income 100 %}; --clr: #f7768e;">
+                        <span class="radial-progress-label">{% widthratio total_expenses total_income 100 %}%</span>
+                    </div>
+                    {% else %}
+                    <div class="radial-progress" style="--value:0; --clr: #f7768e;">
+                        <span class="radial-progress-label">0%</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="glass-card p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Net Profit" %}</h3>
+                        <p class="text-3xl font-bold {% if net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ net_profit|floatformat:0 }}</p>
+                    </div>
+                    {% if total_income > 0 and net_profit > 0 %}
+                    <div class="radial-progress" style="--value:{% widthratio net_profit total_income 100 %}; --clr: #7aa2f7;">
+                        <span class="radial-progress-label">{% widthratio net_profit total_income 100 %}%</span>
+                    </div>
+                     {% else %}
+                    <div class="radial-progress" style="--value:0; --clr: #7aa2f7;">
+                        <span class="radial-progress-label">0%</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Line Chart -->
+            <div class="glass-card p-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                    <h3 class="text-xl font-bold text-start">{% trans "Activity" %}</h3>
+                    <div class="flex items-center gap-2 p-1 bg-[var(--bg-primary)] rounded-full">
+                        <a href="?timeframe=daily{% if selected_month %}&month={{selected_month}}{% endif %}" class="px-3 py-1 text-sm rounded-full {% if current_timeframe == 'daily' %}bg-purple-600 text-white{% else %}hover:bg-[var(--border-color)]{% endif %} transition-colors">{% trans "Daily" %}</a>
+                        <a href="?timeframe=weekly{% if selected_month %}&month={{selected_month}}{% endif %}" class="px-3 py-1 text-sm rounded-full {% if current_timeframe == 'weekly' %}bg-purple-600 text-white{% else %}hover:bg-[var(--border-color)]{% endif %} transition-colors">{% trans "Weekly" %}</a>
+                        <a href="?timeframe=monthly{% if selected_month %}&month={{selected_month}}{% endif %}" class="px-3 py-1 text-sm rounded-full {% if current_timeframe == 'monthly' %}bg-purple-600 text-white{% else %}hover:bg-[var(--border-color)]{% endif %} transition-colors">{% trans "Monthly" %}</a>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Today's Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold text-start">{% trans "Today's Income" %}</h3>
+                    <p class="text-2xl text-success text-start">{{ total_today_income|floatformat:0 }}</p>
+                </div>
+                 <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold text-start">{% trans "Today's Expenses" %}</h3>
+                    <p class="text-2xl text-danger text-start">{{ total_today_expenses|floatformat:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar Column -->
+        <div class="lg:col-span-1 space-y-6">
+             <div class="glass-card p-6">
+                <h3 class="text-xl font-bold mb-4 text-start">{% trans "Filters & Actions" %}</h3>
+                <form method="get" class="space-y-4">
+                    <div>
+                        <label for="month-select" class="font-medium text-[var(--text-secondary)]">{% trans "Show report for month:" %}</label>
+                        <select name="month" id="month-select" class="form-input w-full mt-2" onchange="this.form.submit()">
+                            <option value="">{% trans "All Months" %}</option>
+                            {% for month_num, month_name in months.items %}
+                                <option value="{{ month_num }}" {% if selected_month == month_num|stringformat:"s" %}selected{% endif %}>{{ month_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+                <div class="border-t border-[var(--border-color)] my-6"></div>
+                <h3 class="text-xl font-bold text-start">{% trans "Quick Transaction" %}</h3>
+                <div class="space-y-2">
+                    <button id="add-income-btn" class="w-full btn bg-green-500/20 text-green-300 hover:bg-green-500/30">{% trans "Add Income" %}</button>
+                    <button id="add-expense-btn" class="w-full btn bg-red-500/20 text-red-300 hover:bg-red-500/30">{% trans "Add Expense" %}</button>
+                </div>
+            </div>
+            <div class="glass-card p-6">
+                <h3 class="text-xl font-bold mb-4 text-start">{% trans "Recent Activities" %}</h3>
+                <ul class="space-y-4">
+                    {% for activity in recent_activities %}
+                        <li class="flex items-center gap-3">
+                            <div class="p-2 rounded-full bg-[var(--bg-secondary)]">
+                                {% if activity|class_name == 'Customer' %}
+                                <i data-feather="user-plus" class="text-green-400"></i>
+                                {% elif activity|class_name == 'Expense' %}
+                                <i data-feather="arrow-down-circle" class="text-red-400"></i>
+                                {% else %}
+                                <i data-feather="arrow-up-circle" class="text-blue-400"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-start">
+                                    {% if activity|class_name == 'Customer' %} {% trans "New Customer:" %} {{ activity.name }}
+                                    {% elif activity|class_name == 'Expense' %} {% trans "Expense:" %} {{ activity.issue }}
+                                    {% else %} {% trans "Income:" %} {{ activity.name }}
+                                    {% endif %}
+                                </p>
+                                <p class="text-sm text-[var(--text-secondary)] text-start">{{ activity.created_at|timesince }} {% trans "ago" %}</p>
+                            </div>
+                            <p class="font-bold {% if activity|class_name == 'Expense' %}text-danger{% else %}text-success{% endif %}">
+                                {{ activity.price|floatformat:0 }}
+                            </p>
+                        </li>
+                    {% empty %}
+                        <p class="text-[var(--text-secondary)] text-center py-4">{% trans "No recent activities." %}</p>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
     </div>
 
-    <!-- Financial Summary -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="glass-card p-6 text-center">
-            <h3 class="text-lg text-gray-400">{% trans "Total Income" %}</h3>
-            <p class="text-3xl font-bold text-success">{{ total_income|floatformat:0 }}</p>
-        </div>
-        <div class="glass-card p-6 text-center">
-            <h3 class="text-lg text-gray-400">{% trans "Total Expenses" %}</h3>
-            <p class="text-3xl font-bold text-danger">{{ total_expenses|floatformat:0 }}</p>
-        </div>
-        <div class="glass-card p-6 text-center">
-            <h3 class="text-lg text-gray-400">{% trans "Net Profit" %}</h3>
-            <p class="text-3xl font-bold {% if net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ net_profit|floatformat:0 }}</p>
-        </div>
-    </div>
-
-    <!-- Forms and Lists -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Other Incomes Section -->
+    <!-- Full-width Lists -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        <!-- Incomes List -->
         <div class="glass-card p-8 space-y-6">
-            <h2 class="text-2xl font-bold text-start">{% trans "Add Income (Server & Support)" %}</h2>
-            <form method="post" class="space-y-4 form-container">
+            <h3 class="text-xl font-bold pt-4 text-start">{% trans "Incomes List" %}</h3>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="space-y-2 pr-2">
+                    {% for income in other_incomes %}
+                        <li class="flex justify-between items-center bg-[var(--bg-secondary)]/50 p-3 rounded">
+                            <div>
+                                <span class="font-bold">{{ income.name }}</span>
+                                <span class="text-sm text-[var(--text-secondary)] block">{{ income.jalali_deposit_date }}</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="font-bold text-success">{{ income.price|floatformat:0 }}</span>
+                                <form method="post" action="{% url 'delete_other_income' income.id %}" onsubmit="return confirm('{% trans "Are you sure?" %}');">
+                                    {% csrf_token %}
+                                    <button type="submit"><i data-feather="trash-2" class="text-red-500 hover:text-red-400"></i></button>
+                                </form>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="text-[var(--text-secondary)] text-center py-4">{% trans "No income has been recorded." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Expenses List -->
+        <div class="glass-card p-8 space-y-6">
+            <h3 class="text-xl font-bold pt-4 text-start">{% trans "Expenses List" %}</h3>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="space-y-2 pr-2">
+                    {% for expense in expenses %}
+                        <li class="flex justify-between items-center bg-[var(--bg-secondary)]/50 p-3 rounded">
+                            <div>
+                                <span class="font-bold">{{ expense.issue }}</span>
+                                <span class="text-sm text-[var(--text-secondary)] block">{{ expense.jalali_spending_date }}</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="font-bold text-danger">{{ expense.price|floatformat:0 }}</span>
+                                <form method="post" action="{% url 'delete_expense' expense.id %}" onsubmit="return confirm('{% trans "Are you sure?" %}');">
+                                    {% csrf_token %}
+                                    <button type="submit"><i data-feather="trash-2" class="text-red-500 hover:text-red-400"></i></button>
+                                </form>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="text-[var(--text-secondary)] text-center py-4">{% trans "No expense has been recorded." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Expenses Analysis -->
+    <div class="glass-card p-8 mt-8">
+        <h3 class="text-xl font-bold mb-4 text-start">{% trans "Top Spending Categories" %}</h3>
+        <ul class="space-y-3">
+            {% for expense in top_expenses %}
+                <li class="text-start">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-semibold">{{ expense.issue }} ({{ expense.count }}x)</span>
+                        <span class="text-sm text-[var(--text-secondary)]">{{ expense.total|floatformat:0 }}</span>
+                    </div>
+                    <div class="w-full bg-[var(--bg-secondary)] rounded-full h-2.5">
+                        <div class="bg-purple-600 h-2.5 rounded-full" style="width: {% widthratio expense.total total_expenses 100 %}%"></div>
+                    </div>
+                </li>
+            {% empty %}
+                <p class="text-[var(--text-secondary)] text-center py-4">{% trans "No expenses to analyze." %}</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+
+    <!-- Add Income Modal -->
+    <div id="add-income-modal" class="modal-overlay">
+        <div class="modal-content glass-card p-8 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">{% trans "Add Income (Server & Support)" %}</h2>
+                <button class="close-modal-btn p-2 rounded-full hover:bg-[var(--border-color)]">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <form method="post" class="space-y-4 form-container text-start">
                 {% csrf_token %}
                 {{ other_income_form.as_p }}
-                <button type="submit" name="add_other_income" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg">{% trans "Add Income" %}</button>
+                <button type="submit" name="add_other_income" class="w-full btn btn-gradient mt-4">{% trans "Add Income" %}</button>
             </form>
-            <hr class="border-gray-700">
-            <h3 class="text-xl font-bold pt-4 text-start">{% trans "Incomes List" %}</h3>
-            <ul class="space-y-2">
-                {% for income in other_incomes %}
-                    <li class="flex justify-between items-center bg-gray-800/50 p-3 rounded">
-                        <div>
-                            <span class="font-bold">{{ income.name }}</span>
-                            <span class="text-sm text-gray-400 block">{{ income.jalali_deposit_date }}</span>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span class="font-bold text-success">{{ income.price|floatformat:0 }}</span>
-                            <form method="post" action="{% url 'delete_other_income' income.id %}" onsubmit="return confirm('{% trans "Are you sure?" %}');">
-                                {% csrf_token %}
-                                <button type="submit"><i data-feather="trash-2" class="text-red-500 hover:text-red-400"></i></button>
-                            </form>
-                        </div>
-                    </li>
-                {% empty %}
-                    <li class="text-gray-500 text-center py-4">{% trans "No income has been recorded." %}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <!-- Expenses Section -->
-        <div class="glass-card p-8 space-y-6">
-            <h2 class="text-2xl font-bold text-start">{% trans "Add Daily Expense" %}</h2>
-            <form method="post" class="space-y-4 form-container">
-                {% csrf_token %}
-                {{ expense_form.as_p }}
-                <button type="submit" name="add_expense" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg">{% trans "Add Expense" %}</button>
-            </form>
-            <hr class="border-gray-700">
-            <h3 class="text-xl font-bold pt-4 text-start">{% trans "Expenses List" %}</h3>
-            <ul class="space-y-2">
-                {% for expense in expenses %}
-                    <li class="flex justify-between items-center bg-gray-800/50 p-3 rounded">
-                        <div>
-                            <span class="font-bold">{{ expense.issue }}</span>
-                            <span class="text-sm text-gray-400 block">{{ expense.jalali_spending_date }}</span>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span class="font-bold text-danger">{{ expense.price|floatformat:0 }}</span>
-                            <form method="post" action="{% url 'delete_expense' expense.id %}" onsubmit="return confirm('{% trans "Are you sure?" %}');">
-                                {% csrf_token %}
-                                <button type="submit"><i data-feather="trash-2" class="text-red-500 hover:text-red-400"></i></button>
-                            </form>
-                        </div>
-                    </li>
-                {% empty %}
-                    <li class="text-gray-500 text-center py-4">{% trans "No expense has been recorded." %}</li>
-                {% endfor %}
-            </ul>
         </div>
     </div>
+
+    <!-- Add Expense Modal -->
+    <div id="add-expense-modal" class="modal-overlay">
+        <div class="modal-content glass-card p-8 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">{% trans "Add Daily Expense" %}</h2>
+                <button class="close-modal-btn p-2 rounded-full hover:bg-[var(--border-color)]">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <form method="post" class="space-y-4 form-container text-start">
+                {% csrf_token %}
+                 {% for field in expense_form %}
+                    {% if field.name == 'is_server_cost' %}
+                        <div class="pt-2">
+                            <label class="toggle-wrapper">
+                                {{ field }}
+                                <div class="toggle-switch"></div>
+                                <span class="font-medium text-[var(--text-secondary)]">{{ field.label }}</span>
+                            </label>
+                        </div>
+                    {% else %}
+                        <div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" name="add_expense" class="w-full btn btn-gradient mt-4">{% trans "Add Expense" %}</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chart Logic
+        const ctx = document.getElementById('activityChart');
+        if (ctx) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: {{ chart_labels|safe }},
+                    datasets: [
+                        {
+                            label: '{% trans "Income" %}',
+                            data: {{ income_data|safe }},
+                            borderColor: '#9ece6a',
+                            backgroundColor: 'rgba(158, 206, 106, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                        },
+                        {
+                            label: '{% trans "Expenses" %}',
+                            data: {{ expense_data|safe }},
+                            borderColor: '#f7768e',
+                            backgroundColor: 'rgba(247, 118, 142, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: 'var(--text-primary)' }, grid: { color: 'var(--border-color)' } },
+                        x: { ticks: { color: 'var(--text-primary)' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { labels: { color: 'var(--text-primary)' } } }
+                }
+            });
+        }
+
+        // Modal Logic
+        const addIncomeBtn = document.getElementById('add-income-btn');
+        const addExpenseBtn = document.getElementById('add-expense-btn');
+        const incomeModal = document.getElementById('add-income-modal');
+        const expenseModal = document.getElementById('add-expense-modal');
+        const closeButtons = document.querySelectorAll('.close-modal-btn');
+
+        function toggleModal(modal) {
+            if(modal) modal.classList.toggle('active');
+        }
+
+        if(addIncomeBtn) addIncomeBtn.addEventListener('click', () => toggleModal(incomeModal));
+        if(addExpenseBtn) addExpenseBtn.addEventListener('click', () => toggleModal(expenseModal));
+
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if(incomeModal) incomeModal.classList.remove('active');
+                if(expenseModal) expenseModal.classList.remove('active');
+            });
+        });
+
+        [incomeModal, expenseModal].forEach(modal => {
+            if(modal) {
+                modal.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        toggleModal(modal);
+                    }
+                });
+            }
+        });
+
+    });
+</script>
 {% endblock %}
 

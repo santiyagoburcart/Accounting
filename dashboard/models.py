@@ -1,7 +1,37 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 import jdatetime
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    avatar = models.ImageField(default='avatars/default.svg', upload_to='avatars/')
+    # فیلد جدید برای ذخیره تم کاربر
+    theme = models.CharField(max_length=10, default='dark')  # 'dark' or 'light'
+
+    def __str__(self):
+        return f'{self.user.username} Profile'
+
+
+# --- سیگنال‌ها ---
+# وقتی یک کاربر جدید ساخته می‌شود، به صورت خودکار یک پروفایل برای او ایجاد می‌شود.
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    # از hasattr برای جلوگیری از خطا در زمان ساخت اولین superuser استفاده می‌کنیم
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+
+
+# ------------------------------------
 
 class Customer(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creator Admin"))
@@ -33,7 +63,7 @@ class Customer(models.Model):
         verbose_name_plural = _("Customers")
         ordering = ['-created_at']
 
-# مدل جدید برای ثبت هزینه‌ها
+
 class Expense(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creator Admin"))
     spending_date = models.DateField(verbose_name=_("Spending Date (Shamsi)"), null=True, blank=True)
@@ -57,7 +87,7 @@ class Expense(models.Model):
         verbose_name_plural = _("Expenses")
         ordering = ['-spending_date']
 
-# مدل جدید برای ثبت سایر درآمدها
+
 class OtherIncome(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creator Admin"))
     deposit_date = models.DateField(verbose_name=_("Deposit Date (Shamsi)"), null=True, blank=True)
@@ -74,7 +104,7 @@ class OtherIncome(models.Model):
         if self.deposit_date:
             return jdatetime.date.fromgregorian(date=self.deposit_date).strftime('%Y/%m/%d')
         return _("Not Set")
-        
+
     class Meta:
         verbose_name = _("Other Income")
         verbose_name_plural = _("Other Incomes")

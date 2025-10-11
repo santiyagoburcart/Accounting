@@ -1,0 +1,37 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Import & Export Tools" %}{% endblock %}
+{% block page_title %}{% trans "Import & Export" %}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    <!-- بخش اکسپورت -->
+    <div class="glass-card p-8 space-y-6">
+        <h2 class="text-2xl font-bold text-start">{% trans "Export Data" %}</h2>
+        <p class="text-[var(--text-secondary)]">{% trans "Download your current customer data as a CSV file. This can be used as a backup or for editing in other software." %}</p>
+
+        <div class="space-y-4">
+            <a href="{% url 'export_customers' %}" class="btn bg-blue-500/20 text-blue-300 hover:bg-blue-500/40 w-full">{% trans "Export Customers Data" %}</a>
+        </div>
+    </div>
+
+    <!-- بخش ایمپورت -->
+    <div class="glass-card p-8 space-y-6">
+        <h2 class="text-2xl font-bold text-start">{% trans "Import Data from CSV" %}</h2>
+        <p class="text-[var(--text-secondary)]">{% trans "Upload your old customer data. Make sure the column names in your CSV file match: User, Date expaire, Price, GB, NUMBER PHONE, Date of deposit, Check, refrale, Bank Name" %}</p>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label for="csv_file" class="block mb-2 text-sm font-medium">{% trans "Select CSV File" %}</label>
+                <input type="file" name="csv_file" id="csv_file" class="form-input" accept=".csv" required>
+            </div>
+            <button type="submit" class="w-full btn btn-gradient">{% trans "Start Import" %}</button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+

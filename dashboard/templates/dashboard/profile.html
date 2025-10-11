@@ -4,26 +4,33 @@
 {% block title %}{% trans "User Profile" %}{% endblock %}
 {% block page_title %}{% trans "Profile Management" %}{% endblock %}
 
-{% block extra_head %}
-    <style>
-        .form-container p { margin-bottom: 1rem; }
-        .form-container label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; }
-        .form-container .helptext { font-size: 0.75rem; color: #7aa2f7; margin-top: 0.25rem; }
-        .form-container ul.errorlist { list-style: none; padding: 0; margin: 0; }
-        .form-container ul.errorlist li { color: #f7768e; font-size: 0.875rem; }
-    </style>
-{% endblock %}
-
 {% block content %}
 <div class="max-w-4xl mx-auto">
+    <!-- Avatar Upload Section -->
+    <div class="glass-card p-8 mb-8 text-center">
+        <h2 class="text-2xl font-bold mb-6 text-start">{% trans "Profile Picture" %}</h2>
+        <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-purple-500">
+        <form method="post" enctype="multipart/form-data" class="max-w-sm mx-auto">
+            {% csrf_token %}
+            <label for="id_avatar" class="custom-file-upload">
+                <i data-feather="upload" class="inline-block align-middle"></i>
+                <span id="file-chosen" class="inline-block align-middle">{% trans "Choose a file" %}</span>
+            </label>
+            {{ profile_form.avatar }}
+            <button type="submit" name="change_avatar" class="btn btn-gradient mt-4">
+                {% trans "Upload New Picture" %}
+            </button>
+        </form>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <!-- User Details Form -->
         <div class="glass-card p-8">
             <h2 class="text-2xl font-bold mb-6 text-start">{% trans "User Information" %}</h2>
-            <form method="post" class="space-y-4 form-container">
+            <form method="post" class="space-y-4 form-container text-start">
                 {% csrf_token %}
                 {{ user_form.as_p }}
-                <button type="submit" name="change_details" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg mt-4">
+                <button type="submit" name="change_details" class="w-full btn btn-gradient text-lg mt-4">
                     {% trans "Save Information" %}
                 </button>
             </form>
@@ -31,15 +38,34 @@
         <!-- Password Change Form -->
         <div class="glass-card p-8">
             <h2 class="text-2xl font-bold mb-6 text-start">{% trans "Change Password" %}</h2>
-            <form method="post" class="space-y-4 form-container">
+            <form method="post" class="space-y-4 form-container text-start">
                 {% csrf_token %}
                 {{ password_form.as_p }}
-                <button type="submit" name="change_password" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg mt-4">
+                <button type="submit" name="change_password" class="w-full btn btn-gradient text-lg mt-4">
                     {% trans "Change Password" %}
                 </button>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const actualFileInput = document.getElementById('id_avatar');
+        const fileChosen = document.getElementById('file-chosen');
+
+        if(actualFileInput && fileChosen) {
+            actualFileInput.addEventListener('change', function(){
+                if (this.files.length > 0) {
+                    fileChosen.textContent = this.files[0].name;
+                } else {
+                    fileChosen.textContent = "{% trans 'Choose a file' %}";
+                }
+            })
+        }
+    });
+</script>
 {% endblock %}
 

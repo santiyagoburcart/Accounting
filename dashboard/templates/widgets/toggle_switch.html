@@ -1,0 +1,13 @@
+{# این فایل، ظاهر سوییچ را تعریف می‌کند #}
+<div class="form-field-container flex items-center">
+    <label class="toggle-switch-label">
+        {# خود اینپوت اصلی به صورت مخفی رندر می‌شود #}
+        <input type="checkbox" name="{{ widget.name }}" {% if widget.value %}checked{% endif %}>
+        {# این بخش، ظاهر سوییچ را با استفاده از CSS می‌سازد #}
+        <div class="toggle-switch"></div>
+        {# لیبل یا عنوان سوییچ در کنار آن نمایش داده می‌شود #}
+        <span>{{ widget.label }}</span>
+    </label>
+</div>
+
+

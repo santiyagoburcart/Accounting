@@ -8,3 +8,8 @@ packaging==25.0
 psycopg2-binary==2.9.10
 sqlparse==0.5.3
 typing_extensions==4.15.0
+django-mathfilters==1.0.0
+pytz==2024.1
+Pillow==10.3.0
+django-filter==24.2
+pandas==2.2.2
