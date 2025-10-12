@@ -32,6 +32,6 @@ urlpatterns = [
 
     # --- مسیرهای جدید برای ایمپورت و اکسپورت ---
     path('tools/import-export/', import_export_view, name='import_export'),
-    path('tools/export/customers/', export_customers_csv, name='export_customers'),
+    # FIX: The name is changed to 'export_customers_csv' to match the template and fix the NoReverseMatch error.
+    path('tools/export/customers/', export_customers_csv, name='export_customers_csv'),
 ]
-

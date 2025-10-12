@@ -1,0 +1,21 @@
+{% extends "dashboard/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Page Not Found" %}{% endblock %}
+
+{% block page_title %}{% trans "Error 404" %}{% endblock %}
+{% block page_title_desktop %}{% trans "Error 404" %}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center text-center h-full">
+    <div class="glass-card p-12 w-full max-w-lg">
+        {# شما می‌توانید یک تصویر SVG زیبا برای این بخش در static/images قرار دهید #}
+        {# <img src="{% static 'images/404-illustration.svg' %}" alt="404 Not Found" class="max-w-xs mx-auto mb-8"> #}
+        <h1 class="text-3xl font-bold mb-4">{% trans "Page Not Found" %}</h1>
+        <p class="text-[var(--text-secondary)] mb-8">{% trans "Sorry, the page you are looking for does not exist or has been moved." %}</p>
+        <a href="{% url 'financial_report' %}" class="btn btn-gradient">
+            {% trans "Go to Dashboard" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

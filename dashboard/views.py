@@ -18,6 +18,7 @@ from django.http import JsonResponse, HttpResponse
 import jdatetime
 import pandas as pd
 
+
 # A custom template filter to get class name
 from django.template.defaulttags import register
 
@@ -63,7 +64,7 @@ def financial_report_view(request):
     # Base querysets
     expenses_base = Expense.objects.filter(creator=request.user)
     other_incomes_base = OtherIncome.objects.filter(creator=request.user)
-    customers_base = Customer.objects.filter(creator=request.user, is_paid=True)
+    customers_base = Customer.objects.filter(creator=request.user, status='success')
 
     # Filtered querysets for main stats
     expenses_stats = filter_queryset_by_month(request, expenses_base, 'spending_date')
@@ -80,7 +81,8 @@ def financial_report_view(request):
     # Today's stats
     today = timezone.now().date()
     today_income_q = \
-        Customer.objects.filter(creator=request.user, is_paid=True, payment_date=today).aggregate(total=Sum('price'))[
+        Customer.objects.filter(creator=request.user, status='success', payment_date=today).aggregate(
+            total=Sum('price'))[
             'total'] or 0
     today_other_income_q = \
         OtherIncome.objects.filter(creator=request.user, deposit_date=today).aggregate(total=Sum('price'))['total'] or 0
@@ -96,45 +98,52 @@ def financial_report_view(request):
 
     if timeframe == 'daily':
         days_range = 7
-        chart_labels = [(today - timedelta(days=i)).strftime("%b %d") for i in range(days_range - 1, -1, -1)]
-        for day in [(today - timedelta(days=i)) for i in range(days_range - 1, -1, -1)]:
-            daily_income = (Customer.objects.filter(creator=request.user, is_paid=True, payment_date=day).aggregate(
-                s=Sum('price'))['s'] or 0) + \
-                           (OtherIncome.objects.filter(creator=request.user, deposit_date=day).aggregate(
-                               s=Sum('price'))['s'] or 0)
+        date_range = [(today - timedelta(days=i)) for i in range(days_range - 1, -1, -1)]
+        # ==================== FIX START ====================
+        # استفاده از متد استاندارد strftime برای نمایش تاریخ شمسی
+        chart_labels = [jdatetime.date.fromgregorian(date=d).strftime('%d %B') for d in date_range]
+        # ===================== FIX END =====================
+        for day in date_range:
+            daily_income = (Customer.objects.filter(creator=request.user, status='success', payment_date=day).aggregate(
+                s=Sum('price'))['s'] or 0) + (
+                                       OtherIncome.objects.filter(creator=request.user, deposit_date=day).aggregate(
+                                           s=Sum('price'))['s'] or 0)
             daily_expense = Expense.objects.filter(creator=request.user, spending_date=day).aggregate(s=Sum('price'))[
                                 's'] or 0
             income_data.append(int(daily_income))
             expense_data.append(int(daily_expense))
-
     elif timeframe == 'weekly':
         weeks_range = 4
         chart_labels = []
         for i in range(weeks_range - 1, -1, -1):
             start_of_week = today - timedelta(days=today.weekday() + (i * 7))
             end_of_week = start_of_week + timedelta(days=6)
-            chart_labels.append(f"Week {start_of_week.strftime('%d')}-{end_of_week.strftime('%d %b')}")
-            weekly_income = (Customer.objects.filter(creator=request.user, is_paid=True,
+            start_jalali = jdatetime.date.fromgregorian(date=start_of_week).strftime('%d')
+            end_jalali = jdatetime.date.fromgregorian(date=end_of_week).strftime('%d %B')
+            chart_labels.append(f"{_('Week')} {start_jalali} - {end_jalali}")
+            weekly_income = (Customer.objects.filter(creator=request.user, status='success',
                                                      payment_date__range=[start_of_week, end_of_week]).aggregate(
-                s=Sum('price'))['s'] or 0) + \
-                            (OtherIncome.objects.filter(creator=request.user,
-                                                        deposit_date__range=[start_of_week, end_of_week]).aggregate(
-                                s=Sum('price'))['s'] or 0)
+                s=Sum('price'))['s'] or 0) + (OtherIncome.objects.filter(creator=request.user,
+                                                                         deposit_date__range=[start_of_week,
+                                                                                              end_of_week]).aggregate(
+                s=Sum('price'))['s'] or 0)
             weekly_expense = \
-                Expense.objects.filter(creator=request.user,
-                                       spending_date__range=[start_of_week, end_of_week]).aggregate(
-                    s=Sum('price'))['s'] or 0
+            Expense.objects.filter(creator=request.user, spending_date__range=[start_of_week, end_of_week]).aggregate(
+                s=Sum('price'))['s'] or 0
             income_data.append(int(weekly_income))
             expense_data.append(int(weekly_expense))
-
     else:  # monthly (default)
         days_range = 30
-        chart_labels = [(today - timedelta(days=i)).strftime("%b %d") for i in range(days_range - 1, -1, -1)]
-        for day in [(today - timedelta(days=i)) for i in range(days_range - 1, -1, -1)]:
-            daily_income = (Customer.objects.filter(creator=request.user, is_paid=True, payment_date=day).aggregate(
-                s=Sum('price'))['s'] or 0) + \
-                           (OtherIncome.objects.filter(creator=request.user, deposit_date=day).aggregate(
-                               s=Sum('price'))['s'] or 0)
+        date_range = [(today - timedelta(days=i)) for i in range(days_range - 1, -1, -1)]
+        # ==================== FIX START ====================
+        # استفاده از متد استاندارد strftime برای نمایش تاریخ شمسی
+        chart_labels = [jdatetime.date.fromgregorian(date=d).strftime('%d %B') for d in date_range]
+        # ===================== FIX END =====================
+        for day in date_range:
+            daily_income = (Customer.objects.filter(creator=request.user, status='success', payment_date=day).aggregate(
+                s=Sum('price'))['s'] or 0) + (
+                                       OtherIncome.objects.filter(creator=request.user, deposit_date=day).aggregate(
+                                           s=Sum('price'))['s'] or 0)
             daily_expense = Expense.objects.filter(creator=request.user, spending_date=day).aggregate(s=Sum('price'))[
                                 's'] or 0
             income_data.append(int(daily_income))
@@ -199,31 +208,24 @@ def financial_report_view(request):
 def customer_dashboard_view(request):
     customers_base = Customer.objects.filter(creator=request.user)
 
-    # --- منطق اصلاح شده برای فیلترهای همزمان ---
-    # فیلتر معرف
-    referrer_list = customers_base.values_list('referrer', flat=True).distinct().exclude(referrer__exact='')
+    # FINAL FIX: A more robust way to get a unique, sorted list of non-empty referrers.
+    referrer_list = Customer.objects.filter(creator=request.user).exclude(referrer__exact='').order_by(
+        'referrer').values_list('referrer', flat=True).distinct()
+
     selected_referrer = request.GET.get('referrer')
     if selected_referrer:
         customers_base = customers_base.filter(referrer=selected_referrer)
 
-    # فیلتر جدید: وضعیت پرداخت
     selected_status = request.GET.get('status')
-    if selected_status == 'paid':
-        customers_base = customers_base.filter(is_paid=True)
-    elif selected_status == 'unpaid':
-        customers_base = customers_base.filter(is_paid=False)
+    if selected_status in ['success', 'pending']:
+        customers_base = customers_base.filter(status=selected_status)
 
-    # فیلتر ماه (روی نتیجه فیلترهای قبلی اعمال می‌شود)
-    # ما بر اساس `payment_date` فیلتر می‌کنیم تا با منطق مالی هماهنگ باشد
     customers = filter_queryset_by_month(request, customers_base, 'payment_date')
-    # ------------------------------------
 
     stats_queryset = customers
-
     total_giga = stats_queryset.aggregate(total=Sum('giga'))['total'] or 0
-    total_revenue = stats_queryset.aggregate(total=Sum('price'))['total'] or 0  # کل درآمد بالقوه در این فیلتر
-    paid_amount = stats_queryset.filter(is_paid=True).aggregate(total=Sum('price'))['total'] or 0
-    unpaid_amount = total_revenue - paid_amount
+    paid_amount = stats_queryset.filter(status='success').aggregate(total=Sum('price'))['total'] or 0
+    unpaid_amount = stats_queryset.filter(status='pending').aggregate(total=Sum('price'))['total'] or 0
 
     if request.method == 'POST':
         form = CustomerForm(request.POST)
@@ -232,7 +234,6 @@ def customer_dashboard_view(request):
             customer.creator = request.user
             customer.save()
             messages.success(request, _("Customer '{name}' added successfully.").format(name=customer.name))
-            # پارامترهای فیلتر را در ریدایرکت حفظ می‌کنیم
             return redirect(request.get_full_path())
     else:
         form = CustomerForm()
@@ -240,13 +241,12 @@ def customer_dashboard_view(request):
     context = {
         'form': form, 'customers': customers.order_by('-created_at'),
         'total_giga': total_giga,
-        'total_revenue': total_revenue,  # این همان کل پرداخت شده در فیلتر فعلی است
         'paid_amount': paid_amount,
         'unpaid_amount': unpaid_amount,
         'months': get_persian_months(), 'selected_month': request.GET.get('month'),
         'referrer_list': referrer_list,
         'selected_referrer': selected_referrer,
-        'selected_status': selected_status,  # برای حفظ وضعیت در dropdown
+        'selected_status': selected_status,
     }
     return render(request, 'dashboard/customer_dashboard.html', context)
 
@@ -362,6 +362,11 @@ def import_export_view(request):
                         parts = list(map(int, jalali_date_str.split('/')))
                         payment_date_gregorian = jdatetime.date(parts[0], parts[1], parts[2]).togregorian()
 
+                    status_val = 'pending'
+                    check_val = str(row.get('Check', 'false')).lower()
+                    if check_val in ['true', '1', 'yes']:
+                        status_val = 'success'
+
                     Customer.objects.update_or_create(
                         name=row['User'],
                         creator=request.user,
@@ -374,7 +379,7 @@ def import_export_view(request):
                             'payment_date': payment_date_gregorian,
                             'referrer': str(row.get('refrale', '')) if row.get('refrale') else '',
                             'bank_name': str(row.get('Bank Name', '')) if row.get('Bank Name') else '',
-                            'is_paid': True if str(row.get('Check', 'false')).lower() in ['true', '1', 'yes'] else False
+                            'status': status_val
                         }
                     )
                     count += 1
@@ -398,10 +403,16 @@ def import_export_view(request):
 def export_customers_csv(request):
     queryset = Customer.objects.filter(creator=request.user)
     df = pd.DataFrame(list(
-        queryset.values('name', 'expire_date', 'price', 'giga', 'phone_number', 'payment_date', 'is_paid', 'referrer',
+        queryset.values('name', 'expire_date', 'price', 'giga', 'phone_number', 'payment_date', 'status', 'referrer',
                         'bank_name')))
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     response['Content-Disposition'] = 'attachment; filename="customers.csv"'
     df.to_csv(path_or_buf=response, index=False, encoding='utf-8-sig')
     return response
 
+# NEW: Add these two views at the end of the file
+def custom_404(request, exception):
+    return render(request, '404.html', {}, status=404)
+
+def custom_403(request, exception):
+    return render(request, '403.html', {}, status=403)

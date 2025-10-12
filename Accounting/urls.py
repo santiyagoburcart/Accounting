@@ -23,3 +23,6 @@ urlpatterns += i18n_patterns(
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+# NEW: Add these lines to handle 404 and 403 errors
+handler404 = 'django.views.defaults.page_not_found'
+handler403 = 'django.views.defaults.permission_denied'

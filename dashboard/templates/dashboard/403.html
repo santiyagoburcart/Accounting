@@ -1,0 +1,20 @@
+{% extends "dashboard/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Access Denied" %}{% endblock %}
+
+{% block page_title %}{% trans "Error 403" %}{% endblock %}
+{% block page_title_desktop %}{% trans "Error 403" %}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center text-center h-full">
+    <div class="glass-card p-12 w-full max-w-lg">
+        {# <img src="{% static 'images/403-illustration.svg' %}" alt="403 Access Denied" class="max-w-xs mx-auto mb-8"> #}
+        <h1 class="text-3xl font-bold mb-4">{% trans "Access Denied" %}</h1>
+        <p class="text-[var(--text-secondary)] mb-8">{% trans "Sorry, you do not have permission to access this page." %}</p>
+        <a href="{% url 'financial_report' %}" class="btn btn-gradient">
+            {% trans "Go to Dashboard" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

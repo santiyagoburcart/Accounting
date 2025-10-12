@@ -34,14 +34,23 @@ def save_user_profile(sender, instance, **kwargs):
 # ------------------------------------
 
 class Customer(models.Model):
+    # NEW: Added choices for the new status field
+    STATUS_CHOICES = (
+        ('success', _('Success')),
+        ('pending', _('Pending')),
+    )
+
     creator = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_("Creator Admin"))
     name = models.CharField(max_length=100, verbose_name=_("Full Name"))
     expire_date = models.DateField(verbose_name=_("Expiration Date (Gregorian)"), null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name=_("Price"))
     giga = models.PositiveIntegerField(verbose_name=_("Giga"))
     phone_number = models.CharField(max_length=15, verbose_name=_("Phone Number"), blank=True)
-    payment_date = models.DateField(verbose_name=_("Payment Date (Shamsi)"), null=True, blank=True)
-    is_paid = models.BooleanField(default=False, verbose_name=_("Paid Status"))
+    # NOTE: The original name 'payment_date' is kept, but it stores Gregorian date as per your code logic
+    payment_date = models.DateField(verbose_name=_("Payment Date (Gregorian)"), null=True, blank=True)
+    # DELETED: is_paid = models.BooleanField(default=False, verbose_name=_("Paid Status"))
+    # ADDED: The new status field
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending', verbose_name=_("Status"))
     referrer = models.CharField(max_length=100, verbose_name=_("Referrer"), blank=True)
     bank_name = models.CharField(max_length=50, verbose_name=_("Bank Name"), blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -53,6 +62,7 @@ class Customer(models.Model):
     def jalali_payment_date(self):
         if self.payment_date:
             try:
+                # This correctly converts the stored Gregorian date to Jalali for display
                 return jdatetime.date.fromgregorian(date=self.payment_date).strftime('%Y/%m/%d')
             except (ValueError, TypeError):
                 return _("Invalid Format")
@@ -109,4 +119,3 @@ class OtherIncome(models.Model):
         verbose_name = _("Other Income")
         verbose_name_plural = _("Other Incomes")
         ordering = ['-deposit_date']
-

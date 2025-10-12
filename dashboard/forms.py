@@ -9,8 +9,26 @@ from jalali_date.widgets import AdminJalaliDateWidget
 
 # ویجت سفارشی برای سوییچ (Toggle Switch)
 class ToggleSwitchWidget(forms.CheckboxInput):
-    # ما دیگر از تمپلیت خارجی استفاده نمی‌کنیم و با CSS خالص این کار را انجام خواهیم داد
     pass
+
+
+# ویجت سفارشی برای کلید وضعیت
+class StatusToggleSwitchWidget(forms.CheckboxInput):
+    def __init__(self, attrs=None, check_test=None):
+        super().__init__(attrs, check_test)
+        self.attrs.pop('type', None)
+
+    def get_context(self, name, value, attrs):
+        if value == 'success':
+            attrs['checked'] = True
+        else:
+            attrs.pop('checked', None)
+        return super().get_context(name, value, attrs)
+
+    def value_from_datadict(self, data, files, name):
+        if name in data:
+            return 'success'
+        return 'pending'
 
 
 class CustomerForm(forms.ModelForm):
@@ -19,21 +37,24 @@ class CustomerForm(forms.ModelForm):
     expire_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
                                   label=_("Expiration Date (Gregorian)"), required=False)
 
+    # FINAL FIX: Explicitly define the status field to ensure it's not required
+    status = forms.CharField(required=False, widget=StatusToggleSwitchWidget())
+
     class Meta:
         model = Customer
-        fields = ['name', 'expire_date', 'price', 'giga', 'phone_number', 'payment_date', 'is_paid', 'referrer',
+        # Note: 'status' is now defined explicitly above
+        fields = ['name', 'expire_date', 'price', 'giga', 'phone_number', 'payment_date', 'status', 'referrer',
                   'bank_name']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input'}),
             'price': forms.NumberInput(attrs={'class': 'form-input'}),
             'giga': forms.NumberInput(attrs={'class': 'form-input'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-input'}),
-            'is_paid': ToggleSwitchWidget(),  # فقط ویجت Toggle باقی می‌ماند
             'referrer': forms.TextInput(attrs={'class': 'form-input'}),
             'bank_name': forms.TextInput(attrs={'class': 'form-input'}),
         }
         labels = {
-            'is_paid': _('Paid Status'),
+            'status': _('Status'),
             'name': _('Full Name'),
             'price': _('Price'),
             'giga': _('Giga'),
@@ -99,16 +120,14 @@ class UserProfileForm(forms.ModelForm):
         }
 
 
-# فرم آپلود آواتار با ویجت سفارشی
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['avatar']
-        # ما ویجت را اینجا تعریف می‌کنیم تا بعداً در فایل HTML بتوانیم به آن استایل بدهیم
         widgets = {
             'avatar': forms.FileInput(attrs={'class': 'custom-file-input', 'hidden': True}),
         }
-        labels = {'avatar': ''}  # لیبل را خالی می‌گذاریم
+        labels = {'avatar': ''}
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):
@@ -120,4 +139,3 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         self.fields['new_password1'].label = _("New password")
         self.fields['new_password2'].widget = forms.PasswordInput(attrs={'class': 'form-input'})
         self.fields['new_password2'].label = _("New password confirmation")
-

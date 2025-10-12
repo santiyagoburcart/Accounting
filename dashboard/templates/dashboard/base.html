@@ -1,199 +1,129 @@
-{% load i18n %}
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_CODE == 'fa' %}rtl{% else %}ltr{% endif %}" data-theme="{{ request.user.profile.theme|default:'dark' }}">
+<html lang="{{ LANGUAGE_CODE|default:"en" }}" dir="{{ LANGUAGE_DIR|default:"ltr" }}" data-theme="{{ request.user.profile.theme|default:'dark' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% trans "Accounting Panel" %}{% endblock %}</title>
-
-    <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+    <title>{% block title %}{% trans "Dashboard" %}{% endblock %} - {% trans "Accounting Panel" %}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-[var(--bg-primary)] text-[var(--text-primary)] flex">
-
-    <!-- Overlay for mobile menu -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"></div>
-
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 start-0 z-40 w-64 min-h-screen bg-[var(--bg-secondary)] p-6 flex-shrink-0 flex flex-col justify-between transform transition-transform duration-300 ease-in-out {% if LANGUAGE_CODE == 'fa' %}translate-x-full md:translate-x-0{% else %}-translate-x-full md:translate-x-0{% endif %}">
-        <div>
-            <a href="{% url 'financial_report' %}" class="flex items-center gap-3 mb-10">
-                <img src="{% static 'images/favicon.svg' %}" class="w-10 h-10" alt="Logo">
-                <h1 class="text-xl font-bold">{% trans "Accounting" %}</h1>
-            </a>
-            <nav class="space-y-2">
-                <a href="{% url 'financial_report' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg {% if request.resolver_match.url_name == 'financial_report' %}bg-purple-600 text-white{% else %}text-[var(--text-secondary)] hover:bg-[var(--border-color)] hover:text-[var(--text-primary)]{% endif %} transition">
-                    <i data-feather="pie-chart"></i>
-                    <span>{% trans "Financial Report" %}</span>
+<body class="bg-[var(--bg-primary)] text-[var(--text-primary)]" style="font-family: 'Vazirmatn', sans-serif;">
+    <div class="flex h-screen">
+        <aside id="sidebar" class="w-64 bg-[var(--bg-secondary)] p-6 flex-col justify-between fixed md:relative h-full md:flex transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-40">
+            <div>
+                <a href="{% url 'financial_report' %}" class="flex items-center gap-3 mb-8">
+                    <img src="{% static 'images/favicon.svg' %}" alt="Logo" class="w-8 h-8">
+                    <h1 class="text-2xl font-bold">{% trans "Accounting" %}</h1>
                 </a>
-                <a href="{% url 'customer_dashboard' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg {% if request.resolver_match.url_name == 'customer_dashboard' or request.resolver_match.url_name == 'edit_customer' %}bg-purple-600 text-white{% else %}text-[var(--text-secondary)] hover:bg-[var(--border-color)] hover:text-[var(--text-primary)]{% endif %} transition">
-                    <i data-feather="users"></i>
-                    <span>{% trans "Customers" %}</span>
-                </a>
-                <!-- لینک جدید برای ایمپورت و اکسپورت -->
-                <a href="{% url 'import_export' %}" class="flex items-center gap-3 px-4 py-2 rounded-lg {% if request.resolver_match.url_name == 'import_export' %}bg-purple-600 text-white{% else %}text-[var(--text-secondary)] hover:bg-[var(--border-color)] hover:text-[var(--text-primary)]{% endif %} transition">
-                    <i data-feather="tool"></i>
-                    <span>{% trans "Import / Export" %}</span>
-                </a>
-            </nav>
-        </div>
-        <div>
-             <a href="{% url 'profile' %}" class="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--border-color)] hover:text-[var(--text-primary)] transition">
-                <i data-feather="settings"></i>
-                <span>{% trans "Settings & Profile" %}</span>
-            </a>
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="flex items-center gap-3 w-full px-4 py-2 mt-2 rounded-lg text-red-400 hover:bg-red-500/20 hover:text-red-300 transition">
-                    <i data-feather="log-out"></i>
-                    <span>{% trans "Logout" %}</span>
-                </button>
-            </form>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col h-screen {% if LANGUAGE_CODE == 'fa' %}md:mr-64{% else %}md:ml-64{% endif %}">
-        <header class="bg-[var(--bg-secondary)]/50 p-4 flex justify-between items-center flex-shrink-0 border-b border-[var(--border-color)]">
-             <!-- Hamburger Menu Button -->
-            <button id="menu-btn" class="p-2 rounded-md hover:bg-[var(--border-color)] md:hidden">
-                <i data-feather="menu" class="w-6 h-6"></i>
-            </button>
-            <h2 class="text-xl font-bold hidden md:block">{% block page_title %}{% endblock %}</h2>
-            <div class="flex items-center gap-4">
-
-                <!-- Profile Dropdown -->
-                <div class="relative" id="profile-menu">
-                    <button id="profile-menu-button" class="flex items-center gap-3 cursor-pointer">
-                        <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-purple-500">
-                        <div class="hidden md:block text-start">
-                            <p class="font-bold">{{ user.get_full_name|default:user.username }}</p>
-                            <p class="text-sm text-[var(--text-secondary)]">Admin</p>
-                        </div>
-                    </button>
-                    <!-- Dropdown Menu -->
-                    <div id="profile-menu-dropdown" class="absolute top-full mt-2 end-0 w-56 bg-[var(--bg-secondary)] rounded-lg shadow-lg border border-[var(--border-color)] hidden z-10">
-                        <div class="p-4 border-b border-[var(--border-color)]">
-                             <p class="font-bold text-center">{{ user.get_full_name|default:user.username }}</p>
-                             <p class="text-sm text-[var(--text-secondary)] text-center">{{ user.email }}</p>
-                        </div>
-                        <a href="{% url 'profile' %}" class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-[var(--border-color)]">
-                            <i data-feather="user"></i> {% trans "Edit Profile" %}
-                        </a>
-                        <div class="border-t border-[var(--border-color)] my-1"></div>
-                        <div class="px-4 py-2">
-                            <span class="text-sm text-[var(--text-secondary)]">{% trans "Theme" %}</span>
-                            <div class="flex items-center justify-around mt-2">
-                                <button id="theme-light-btn" class="p-2 rounded-full hover:bg-[var(--border-color)] {% if request.user.profile.theme == 'light' %}text-purple-500{% endif %}"><i data-feather="sun"></i></button>
-                                <button id="theme-dark-btn" class="p-2 rounded-full hover:bg-[var(--border-color)] {% if request.user.profile.theme == 'dark' %}text-purple-500{% endif %}"><i data-feather="moon"></i></button>
-                            </div>
-                        </div>
-                         <div class="border-t border-[var(--border-color)] my-1"></div>
-                        <!-- Language Switcher -->
-                        <form action="{% url 'set_language' %}" method="post" class="px-4 py-2">
-                            {% csrf_token %}
-                            <input name="next" type="hidden" value="{{ request.get_full_path|slice:'3:' }}">
-                            <select name="language" onchange="this.form.submit()" class="form-input !w-full !py-2 !px-3 bg-[var(--bg-secondary)] border-[var(--border-color)]">
-                                {% get_current_language as LANGUAGE_CODE %}
-                                <option value="fa" {% if LANGUAGE_CODE == 'fa' %}selected{% endif %}>🇮🇷 فارسی</option>
-                                <option value="en" {% if LANGUAGE_CODE == 'en' %}selected{% endif %}>🇺🇸 English</option>
-                            </select>
-                        </form>
-                    </div>
-                </div>
-
+                <nav class="space-y-2">
+                    <a href="{% url 'financial_report' %}" class="flex items-center gap-4 p-3 rounded-lg hover:bg-[var(--border-color)] transition-colors {% if request.resolver_match.url_name == 'financial_report' %}bg-[var(--border-color)]{% endif %}">
+                        <i data-feather="pie-chart"></i><span>{% trans "Financial Report" %}</span>
+                    </a>
+                    <a href="{% url 'customer_dashboard' %}" class="flex items-center gap-4 p-3 rounded-lg hover:bg-[var(--border-color)] transition-colors {% if request.resolver_match.url_name == 'customer_dashboard' or request.resolver_match.url_name == 'edit_customer' %}bg-[var(--border-color)]{% endif %}">
+                        <i data-feather="users"></i><span>{% trans "Customers" %}</span>
+                    </a>
+                    <a href="{% url 'import_export' %}" class="flex items-center gap-4 p-3 rounded-lg hover:bg-[var(--border-color)] transition-colors {% if request.resolver_match.url_name == 'import_export' %}bg-[var(--border-color)]{% endif %}">
+                        <i data-feather="git-pull-request"></i><span>{% trans "Import/Export" %}</span>
+                    </a>
+                </nav>
             </div>
-        </header>
+            <div class="space-y-2">
+                <button id="theme-switcher" class="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-[var(--border-color)] transition-colors">
+                    <i data-feather="moon"></i><span>{% trans "Toggle Theme" %}</span>
+                </button>
+                <a href="{% url 'profile' %}" class="flex items-center gap-4 p-3 rounded-lg hover:bg-[var(--border-color)] transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-[var(--border-color)]{% endif %}">
+                    <img src="{{ request.user.profile.avatar.url }}" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
+                    <span>{{ request.user.username }}</span>
+                </a>
+                <a href="{% url 'logout' %}" class="flex items-center gap-4 p-3 rounded-lg hover:bg-[var(--border-color)] transition-colors text-[var(--accent-red)]">
+                    <i data-feather="log-out"></i><span>{% trans "Logout" %}</span>
+                </a>
+            </div>
+        </aside>
 
-        <main class="flex-1 p-6 overflow-y-auto">
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="success-message">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-            {% block content %}{% endblock %}
-        </main>
+        <div class="flex-1 flex flex-col">
+            <header class="md:hidden flex justify-between items-center p-4 bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
+                <button id="hamburger-btn">
+                    <i data-feather="menu"></i>
+                </button>
+                <h1 class="text-xl font-bold">{% block page_title %}{% endblock %}</h1>
+                <div></div>
+            </header>
+
+            <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+                <h1 class="text-2xl font-bold mb-6 text-start hidden md:block">{% block page_title_desktop %}{% endblock %}</h1>
+                {% block content %}{% endblock %}
+            </main>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script> feather.replace(); </script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            feather.replace();
+        document.addEventListener('DOMContentLoaded', function () {
+            const messages = [
+                {% for message in messages %}
+                { "message": "{{ message.message|escapejs }}", "tags": "{{ message.tags }}" },
+                {% endfor %}
+            ];
 
-            // Mobile Menu Logic
-            const menuBtn = document.getElementById('menu-btn');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            const isRTL = document.documentElement.dir === 'rtl';
-
-            function toggleMenu() {
-                if (isRTL) {
-                    sidebar.classList.toggle('translate-x-full');
-                    sidebar.classList.toggle('translate-x-0');
-                } else {
-                    sidebar.classList.toggle('-translate-x-full');
-                    sidebar.classList.toggle('translate-x-0');
-                }
-                overlay.classList.toggle('hidden');
-            }
-
-            if(menuBtn) menuBtn.addEventListener('click', toggleMenu);
-            if(overlay) overlay.addEventListener('click', toggleMenu);
-
-            // Profile Dropdown Logic
-            const profileMenuButton = document.getElementById('profile-menu-button');
-            const profileMenuDropdown = document.getElementById('profile-menu-dropdown');
-
-            if(profileMenuButton) {
-                profileMenuButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    profileMenuDropdown.classList.toggle('hidden');
+            if (messages && messages.length > 0) {
+                messages.forEach(function(message) {
+                    Toastify({
+                        text: message.message,
+                        duration: 4000, close: true, gravity: "top", position: "right", stopOnFocus: true,
+                        style: {
+                            background: (message.tags.includes('success')) ? "linear-gradient(to right, #4ade80, #34d399)" :
+                                        (message.tags.includes('error')) ? "linear-gradient(to right, #f7768e, #ef4444)" :
+                                        "linear-gradient(to right, #7aa2f7, #60a5fa)",
+                            borderRadius: "0.75rem", boxShadow: "0 8px 16px rgba(0,0,0,0.2)"
+                        },
+                    }).showToast();
                 });
             }
 
-            // Close dropdown if clicked outside
-            document.addEventListener('click', function(event) {
-                const profileMenu = document.getElementById('profile-menu');
-                if (profileMenu && !profileMenu.contains(event.target)) {
-                    profileMenuDropdown.classList.add('hidden');
-                }
-            });
+            const themeSwitcher = document.getElementById('theme-switcher');
+            themeSwitcher.addEventListener('click', function() {
+                const html = document.documentElement;
+                const currentTheme = html.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-theme', newTheme);
 
-            // Theme Switcher Logic
-            const lightBtn = document.getElementById('theme-light-btn');
-            const darkBtn = document.getElementById('theme-dark-btn');
-            const htmlEl = document.documentElement;
-
-            function setTheme(theme) {
-                htmlEl.setAttribute('data-theme', theme);
-                // Highlight the active button
-                if (theme === 'light') {
-                    lightBtn.classList.add('text-purple-500');
-                    darkBtn.classList.remove('text-purple-500');
-                } else {
-                    darkBtn.classList.add('text-purple-500');
-                    lightBtn.classList.remove('text-purple-500');
-                }
-                // Send theme preference to server
                 fetch("{% url 'set_theme' %}", {
                     method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `theme=${theme}`
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded', },
+                    body: 'theme=' + newTheme
                 });
-            }
+            });
 
-            if(lightBtn) lightBtn.addEventListener('click', () => setTheme('light'));
-            if(darkBtn) darkBtn.addEventListener('click', () => setTheme('dark'));
+            // Mobile Menu Logic
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const sidebar = document.getElementById('sidebar');
+            hamburgerBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+            });
         });
     </script>
+
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
-

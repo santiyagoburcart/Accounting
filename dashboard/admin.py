@@ -6,8 +6,10 @@ class CustomerAdmin(admin.ModelAdmin):
     """
     تنظیمات نمایش مدل مشتری در پنل ادمین
     """
-    list_display = ('name', 'phone_number', 'expire_date', 'is_paid', 'price', 'giga', 'creator')
-    list_filter = ('is_paid', 'expire_date', 'creator')
+    # UPDATED: Replaced 'is_paid' with 'status'
+    list_display = ('name', 'phone_number', 'expire_date', 'status', 'price', 'giga', 'creator')
+    # UPDATED: Replaced 'is_paid' with 'status'
+    list_filter = ('status', 'expire_date', 'creator')
     search_fields = ('name', 'phone_number', 'referrer')
     list_per_page = 25
 
@@ -30,4 +32,3 @@ class OtherIncomeAdmin(admin.ModelAdmin):
     list_filter = ('deposit_date', 'creator')
     search_fields = ('name', 'description')
     list_per_page = 25
-

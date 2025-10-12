@@ -19,11 +19,11 @@ msgstr ""
 
 #: Accounting/settings.py:118
 msgid "Persian"
-msgstr ""
+msgstr "فارسی"
 
 #: Accounting/settings.py:119
 msgid "English"
-msgstr ""
+msgstr "انگلیسی"
 
 #: dashboard/forms.py:18 dashboard/models.py:43
 msgid "Payment Date (Shamsi)"
@@ -77,7 +77,7 @@ msgstr "توضیحات"
 #: dashboard/forms.py:62 dashboard/forms.py:82 dashboard/models.py:72
 #: dashboard/models.py:96
 msgid "Amount"
-msgstr ""
+msgstr "مقدار"
 
 #: dashboard/forms.py:63 dashboard/models.py:73
 msgid "Is it a server cost?"
@@ -168,7 +168,7 @@ msgstr "پنل حسابداری"
 #, fuzzy
 #| msgid "Accounting Panel"
 msgid "Accounting"
-msgstr "پنل حسابداری"
+msgstr "حسابداری"
 
 #: dashboard/templates/dashboard/base.html:31
 #: dashboard/templates/dashboard/financial_report.html:5
@@ -179,7 +179,7 @@ msgstr "گزارش مالی"
 #, fuzzy
 #| msgid "User Profile"
 msgid "Settings & Profile"
-msgstr "پروفایل کاربری"
+msgstr "تنظیمات و پروفایل"
 
 #: dashboard/templates/dashboard/base.html:48
 msgid "Logout"
@@ -189,11 +189,11 @@ msgstr "خروج"
 #, fuzzy
 #| msgid "Profile"
 msgid "Edit Profile"
-msgstr "پروفایل"
+msgstr "ویرایش پروفایل"
 
 #: dashboard/templates/dashboard/base.html:84
 msgid "Theme"
-msgstr ""
+msgstr "پوسته"
 
 #: dashboard/templates/dashboard/customer_dashboard.html:4
 msgid "Customer Management"
@@ -223,13 +223,13 @@ msgstr "کل بدهی"
 #, fuzzy
 #| msgid "Customers"
 msgid "Customers List"
-msgstr "مشتریان"
+msgstr "لیست مشتریان"
 
 #: dashboard/templates/dashboard/customer_dashboard.html:35
 #, fuzzy
 #| msgid "Referrer"
 msgid "All Referrers"
-msgstr "معرف"
+msgstr "همه معرف‌ها"
 
 #: dashboard/templates/dashboard/customer_dashboard.html:43
 #: dashboard/templates/dashboard/customer_dashboard.html:99
@@ -248,7 +248,7 @@ msgstr "سررسید"
 #, fuzzy
 #| msgid "Payment Date (Shamsi)"
 msgid "Payment Date"
-msgstr "تاریخ پرداخت (شمسی)"
+msgstr "تاریخ پرداخت"
 
 #: dashboard/templates/dashboard/customer_dashboard.html:54
 msgid "Status"
@@ -302,7 +302,7 @@ msgstr "انصراف"
 #, fuzzy
 #| msgid "Financial Report"
 msgid "Financial Dashboard"
-msgstr "گزارش مالی"
+msgstr "داشبورد مالی"
 
 #: dashboard/templates/dashboard/financial_report.html:22
 msgid "Total Income"
@@ -318,65 +318,65 @@ msgstr "سود خالص"
 
 #: dashboard/templates/dashboard/financial_report.html:64
 msgid "Activity"
-msgstr ""
+msgstr "فعالیت"
 
 #: dashboard/templates/dashboard/financial_report.html:66
 msgid "Daily"
-msgstr ""
+msgstr "روزانه"
 
 #: dashboard/templates/dashboard/financial_report.html:67
 msgid "Weekly"
-msgstr ""
+msgstr "هفتگی"
 
 #: dashboard/templates/dashboard/financial_report.html:68
 msgid "Monthly"
-msgstr ""
+msgstr "ماهانه"
 
 #: dashboard/templates/dashboard/financial_report.html:79
 #, fuzzy
 #| msgid "Total Income"
 msgid "Today's Income"
-msgstr "کل درآمد"
+msgstr "درآمد امروز"
 
 #: dashboard/templates/dashboard/financial_report.html:83
 #, fuzzy
 #| msgid "Total Expenses"
 msgid "Today's Expenses"
-msgstr "کل هزینه‌ها"
+msgstr "هزینه‌های امروز"
 
 #: dashboard/templates/dashboard/financial_report.html:92
 msgid "Recent Activities"
-msgstr ""
+msgstr "فعالیت‌های اخیر"
 
 #: dashboard/templates/dashboard/financial_report.html:107
 #, fuzzy
 #| msgid "Add New Customer"
 msgid "New Customer:"
-msgstr "افزودن مشتری جدید"
+msgstr "مشتری جدید:"
 
 #: dashboard/templates/dashboard/financial_report.html:108
 #, fuzzy
 #| msgid "Expense"
 msgid "Expense:"
-msgstr "هزینه"
+msgstr "هزینه:"
 
 #: dashboard/templates/dashboard/financial_report.html:109
 #, fuzzy
 #| msgid "Add Income"
 msgid "Income:"
-msgstr "ثبت درآمد"
+msgstr "درآمد:"
 
 #: dashboard/templates/dashboard/financial_report.html:112
 msgid "ago"
-msgstr ""
+msgstr "پیش"
 
 #: dashboard/templates/dashboard/financial_report.html:119
 msgid "No recent activities."
-msgstr ""
+msgstr "هیچ فعالیت اخیری وجود ندارد."
 
 #: dashboard/templates/dashboard/financial_report.html:125
 msgid "Quick Transaction"
-msgstr ""
+msgstr "تراکنش سریع"
 
 #: dashboard/templates/dashboard/financial_report.html:126
 #: dashboard/templates/dashboard/financial_report.html:144
@@ -402,7 +402,7 @@ msgstr "ثبت هزینه‌های روزانه"
 #, fuzzy
 #| msgid "Add Income"
 msgid "Income"
-msgstr "ثبت درآمد"
+msgstr "درآمد"
 
 #: dashboard/templates/dashboard/profile.html:4
 msgid "User Profile"
@@ -416,16 +416,16 @@ msgstr "مدیریت پروفایل"
 #, fuzzy
 #| msgid "Profile"
 msgid "Profile Picture"
-msgstr "پروفایل"
+msgstr "تصویر پروفایل"
 
 #: dashboard/templates/dashboard/profile.html:17
 #: dashboard/templates/dashboard/profile.html:64
 msgid "Choose a file"
-msgstr ""
+msgstr "انتخاب فایل"
 
 #: dashboard/templates/dashboard/profile.html:21
 msgid "Upload New Picture"
-msgstr ""
+msgstr "آپلود تصویر جدید"
 
 #: dashboard/templates/dashboard/profile.html:29
 msgid "User Information"
@@ -468,7 +468,7 @@ msgstr "رمز عبور شما با موفقیت تغییر کرد."
 
 #: dashboard/views.py:269
 msgid "Your avatar was successfully updated!"
-msgstr ""
+msgstr "آواتار شما با موفقیت به‌روز شد!"
 
 #: dashboard/views.py:297
 #, python-brace-format
@@ -482,27 +482,3 @@ msgstr "هزینه با موفقیت حذف شد."
 #: dashboard/views.py:316
 msgid "Income deleted successfully."
 msgstr "درآمد با موفقیت حذف شد."
-
-#~ msgid "Monthly Financial Report"
-#~ msgstr "گزارش مالی ماهانه"
-
-#~ msgid "Show report for month:"
-#~ msgstr "نمایش گزارش برای ماه:"
-
-#~ msgid "All Months"
-#~ msgstr "همه ماه‌ها"
-
-#~ msgid "Incomes List"
-#~ msgstr "لیست درآمدها"
-
-#~ msgid "No income has been recorded."
-#~ msgstr "درآمدی ثبت نشده است."
-
-#~ msgid "Expenses List"
-#~ msgstr "لیست هزینه‌ها"
-
-#~ msgid "No expense has been recorded."
-#~ msgstr "هزینه‌ای ثبت نشده است."
-
-#~ msgid "Please correct the errors below."
-#~ msgstr "لطفاً خطاهای زیر را اصلاح کنید."
