@@ -1,92 +1,73 @@
+{% load static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ورود به پنل مدیریت</title>
+    <title>{% trans "Login" %} | AP Accounting</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            background-color: #1a1b26;
-            color: #c0caf5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .glass-card {
-            background: rgba(41, 42, 61, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.5rem;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            width: 100%;
-            max-width: 400px;
-            padding: 2.5rem;
-        }
-        .form-input {
-            background-color: #24283b;
-            border: 1px solid #414868;
-            color: #c0caf5;
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            width: 100%;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: #7aa2f7;
-            box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.3);
-        }
-        .btn-gradient {
-            background-image: linear-gradient(to right, #bb9af7, #7aa2f7);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px 0 rgba(187, 154, 247, 0.4);
-        }
-        .btn-gradient:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px 0 rgba(122, 162, 247, 0.5);
-        }
-        /* استایل برای پیام خطای ورود */
-        .error-message-box {
-            background-color: rgba(247, 118, 142, 0.1);
-            border: 1px solid #f7768e;
-            color: #f7768e;
-            padding: 1rem;
-            border-radius: 0.75rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+    <script src="https://unpkg.com/feather-icons"></script>
 </head>
-<body>
-    <div class="glass-card">
-        <h1 class="text-3xl font-bold text-center mb-8">ورود به پنل</h1>
+<body data-theme="dark" class="bg-[var(--bg-primary)] text-[var(--text-primary)]">
 
-        <!-- نمایش پیام خطا در صورت وجود -->
-        {% if form.errors %}
-            <div class="error-message-box">
-                <p>نام کاربری یا رمز عبور اشتباه است. لطفا دوباره تلاش کنید.</p>
-            </div>
-        {% endif %}
+    <div class="min-h-screen flex items-center justify-center p-4">
 
-        <form method="post" class="space-y-6">
-            {% csrf_token %}
-            <div>
-                <label for="id_username" class="block mb-2 text-sm font-medium">نام کاربری</label>
-                <input type="text" name="username" id="id_username" class="form-input">
+        <div class="w-full max-w-4xl flex flex-col lg:flex-row rounded-2xl overflow-hidden glass-card-solid">
+
+            <div class="flex flex-col items-center justify-center p-8 lg:p-12 bg-gradient-to-br from-[var(--accent-blue-dark)] to-[var(--accent-purple)]">
+                <h1 class="text-3xl lg:text-4xl font-bold text-white mb-2">AP Accounting</h1>
+                <p class="text-gray-200 text-center">{% trans "Welcome back! Manage your finances with ease." %}</p>
             </div>
-            <div>
-                <label for="id_password" class="block mb-2 text-sm font-medium">رمز عبور</label>
-                <input type="password" name="password" id="id_password" class="form-input">
+
+            <div class="p-8 md:p-12">
+                <h2 class="text-3xl font-bold mb-2 text-start">{% trans "Login" %}</h2>
+                <p class="text-[var(--text-secondary)] mb-8 text-start">{% trans "Enter your credentials to access your dashboard." %}</p>
+
+                {% if form.errors %}
+                <div class="bg-red-500/20 text-red-300 p-3 rounded-lg mb-6 text-sm text-center">
+                    {% trans "Your username and password didn't match. Please try again." %}
+                </div>
+                {% endif %}
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div>
+                        <label for="{{ form.username.id_for_label }}" class="form-label">{{ form.username.label }}</label>
+                        <div class="relative mt-2">
+                            <span class="form-icon"><i data-feather="user"></i></span>
+                            {{ form.username }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
+                        <div class="relative mt-2">
+                            <span class="form-icon"><i data-feather="lock"></i></span>
+                            {{ form.password }}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">
+                            <input type="checkbox" name="remember" class="form-checkbox">
+                            {% trans "Remember me" %}
+                        </label>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="w-full btn btn-gradient">{% trans "Login" %}</button>
+                    </div>
+                </form>
             </div>
-            <button type="submit" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg">
-                ورود
-            </button>
-        </form>
+        </div>
     </div>
+
+    <script>
+        feather.replace();
+    </script>
 </body>
 </html>
-

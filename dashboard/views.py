@@ -1,15 +1,23 @@
+# Accounting/dashboard/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from django.utils.translation import gettext as _
+from django.urls import reverse_lazy
 from .forms import (
-    CustomerForm, UserProfileForm, CustomPasswordChangeForm,
-    ExpenseForm, OtherIncomeForm, ProfileUpdateForm
+    UserProfileForm, CustomPasswordChangeForm, ExpenseForm,
+    OtherIncomeForm, ProfileUpdateForm, SubscriptionForm, CustomerProfileForm,
+    BankAccountForm,CustomAuthenticationForm
 )
-from .models import Customer, Expense, OtherIncome, Profile
-from django.db.models import Sum, Count
+from .models import (
+    Expense, OtherIncome, Profile, Subscription, CustomerProfile,
+    BankAccount
+)
+from django.db.models import Sum, Count, Q
+from django.db.models.functions import TruncMonth, TruncDay
 from django.utils import timezone
 from itertools import chain
 from operator import attrgetter
@@ -17,9 +25,8 @@ from datetime import timedelta
 from django.http import JsonResponse, HttpResponse
 import jdatetime
 import pandas as pd
+from django.views.decorators.http import require_POST
 
-
-# A custom template filter to get class name
 from django.template.defaulttags import register
 
 
@@ -31,166 +38,450 @@ def class_name(value):
 class CustomLoginView(LoginView):
     template_name = 'dashboard/login.html'
     redirect_authenticated_user = True
+    authentication_form = CustomAuthenticationForm # <-- ۲. به ویو بگویید ا
 
 
-def get_persian_months():
-    return {i: jdatetime.date(1, i, 1).strftime('%B') for i in range(1, 13)}
-
-
-def filter_queryset_by_month(request, queryset, date_field):
-    selected_month = request.GET.get('month')
-    if selected_month and selected_month.isdigit():
-        month = int(selected_month)
-        current_year = jdatetime.date.today().year
-        start_date_jalali = jdatetime.date(current_year, month, 1)
-        if month < 12:
-            end_date_jalali = jdatetime.date(current_year, month + 1, 1)
-        else:
-            end_date_jalali = jdatetime.date(current_year + 1, 1, 1)
-
-        start_date_gregorian = start_date_jalali.togregorian()
-        end_date_gregorian = end_date_jalali.togregorian()
-
-        filter_kwargs = {
-            f'{date_field}__gte': start_date_gregorian,
-            f'{date_field}__lt': end_date_gregorian,
-        }
-        return queryset.filter(**filter_kwargs)
-    return queryset
-
-
+# ===================================================================
+# START: ویو جدید برای صفحه افزودن تراکنش (بر اساس معماری جدید)
+# ===================================================================
 @login_required
-def financial_report_view(request):
-    # Base querysets
-    expenses_base = Expense.objects.filter(creator=request.user)
-    other_incomes_base = OtherIncome.objects.filter(creator=request.user)
-    customers_base = Customer.objects.filter(creator=request.user, status='success')
+def add_transaction_view(request):
+    """
+    داشبورد مدیریت تراکنش‌ها: شامل فرم‌های ورود اطلاعات و نمایش آمار ماهانه.
+    """
+    # --- بخش پردازش فرم‌ها (POST requests) ---
+    expense_form = ExpenseForm(prefix='expense')
+    other_income_form = OtherIncomeForm(prefix='income')
 
-    # Filtered querysets for main stats
-    expenses_stats = filter_queryset_by_month(request, expenses_base, 'spending_date')
-    other_incomes_stats = filter_queryset_by_month(request, other_incomes_base, 'deposit_date')
-    customer_incomes_stats = filter_queryset_by_month(request, customers_base, 'payment_date')
+    # برای اینکه بعد از افزودن تراکنش به همان ماه فیلتر شده بازگردیم
+    redirect_url = reverse_lazy('dashboard:add_transaction')
+    if request.GET.get('year') and request.GET.get('month'):
+        redirect_url += f"?year={request.GET.get('year')}&month={request.GET.get('month')}"
 
-    # Main stats calculations
-    total_customer_income = customer_incomes_stats.aggregate(total=Sum('price'))['total'] or 0
-    total_other_income = other_incomes_stats.aggregate(total=Sum('price'))['total'] or 0
-    total_income = total_customer_income + total_other_income
-    total_expenses = expenses_stats.aggregate(total=Sum('price'))['total'] or 0
-    net_profit = total_income - total_expenses
-
-    # Today's stats
-    today = timezone.now().date()
-    today_income_q = \
-        Customer.objects.filter(creator=request.user, status='success', payment_date=today).aggregate(
-            total=Sum('price'))[
-            'total'] or 0
-    today_other_income_q = \
-        OtherIncome.objects.filter(creator=request.user, deposit_date=today).aggregate(total=Sum('price'))['total'] or 0
-    total_today_income = today_income_q + today_other_income_q
-    total_today_expenses = \
-        Expense.objects.filter(creator=request.user, spending_date=today).aggregate(total=Sum('price'))['total'] or 0
-
-    # Line Chart Data
-    timeframe = request.GET.get('timeframe', 'monthly')
-    chart_labels = []
-    income_data = []
-    expense_data = []
-
-    if timeframe == 'daily':
-        days_range = 7
-        date_range = [(today - timedelta(days=i)) for i in range(days_range - 1, -1, -1)]
-        # ==================== FIX START ====================
-        # استفاده از متد استاندارد strftime برای نمایش تاریخ شمسی
-        chart_labels = [jdatetime.date.fromgregorian(date=d).strftime('%d %B') for d in date_range]
-        # ===================== FIX END =====================
-        for day in date_range:
-            daily_income = (Customer.objects.filter(creator=request.user, status='success', payment_date=day).aggregate(
-                s=Sum('price'))['s'] or 0) + (
-                                       OtherIncome.objects.filter(creator=request.user, deposit_date=day).aggregate(
-                                           s=Sum('price'))['s'] or 0)
-            daily_expense = Expense.objects.filter(creator=request.user, spending_date=day).aggregate(s=Sum('price'))[
-                                's'] or 0
-            income_data.append(int(daily_income))
-            expense_data.append(int(daily_expense))
-    elif timeframe == 'weekly':
-        weeks_range = 4
-        chart_labels = []
-        for i in range(weeks_range - 1, -1, -1):
-            start_of_week = today - timedelta(days=today.weekday() + (i * 7))
-            end_of_week = start_of_week + timedelta(days=6)
-            start_jalali = jdatetime.date.fromgregorian(date=start_of_week).strftime('%d')
-            end_jalali = jdatetime.date.fromgregorian(date=end_of_week).strftime('%d %B')
-            chart_labels.append(f"{_('Week')} {start_jalali} - {end_jalali}")
-            weekly_income = (Customer.objects.filter(creator=request.user, status='success',
-                                                     payment_date__range=[start_of_week, end_of_week]).aggregate(
-                s=Sum('price'))['s'] or 0) + (OtherIncome.objects.filter(creator=request.user,
-                                                                         deposit_date__range=[start_of_week,
-                                                                                              end_of_week]).aggregate(
-                s=Sum('price'))['s'] or 0)
-            weekly_expense = \
-            Expense.objects.filter(creator=request.user, spending_date__range=[start_of_week, end_of_week]).aggregate(
-                s=Sum('price'))['s'] or 0
-            income_data.append(int(weekly_income))
-            expense_data.append(int(weekly_expense))
-    else:  # monthly (default)
-        days_range = 30
-        date_range = [(today - timedelta(days=i)) for i in range(days_range - 1, -1, -1)]
-        # ==================== FIX START ====================
-        # استفاده از متد استاندارد strftime برای نمایش تاریخ شمسی
-        chart_labels = [jdatetime.date.fromgregorian(date=d).strftime('%d %B') for d in date_range]
-        # ===================== FIX END =====================
-        for day in date_range:
-            daily_income = (Customer.objects.filter(creator=request.user, status='success', payment_date=day).aggregate(
-                s=Sum('price'))['s'] or 0) + (
-                                       OtherIncome.objects.filter(creator=request.user, deposit_date=day).aggregate(
-                                           s=Sum('price'))['s'] or 0)
-            daily_expense = Expense.objects.filter(creator=request.user, spending_date=day).aggregate(s=Sum('price'))[
-                                's'] or 0
-            income_data.append(int(daily_income))
-            expense_data.append(int(daily_expense))
-
-    # Expense Analysis
-    top_expenses = expenses_stats.values('issue').annotate(total=Sum('price'), count=Count('issue')).order_by('-total')[
-        :15]
-
-    # Recent Activities
-    recent_customers = Customer.objects.filter(creator=request.user).order_by('-created_at')[:5]
-    recent_expenses = Expense.objects.filter(creator=request.user).order_by('-created_at')[:5]
-    recent_incomes = OtherIncome.objects.filter(creator=request.user).order_by('-created_at')[:5]
-    recent_activities = sorted(
-        chain(recent_customers, recent_expenses, recent_incomes),
-        key=attrgetter('created_at'),
-        reverse=True
-    )[:5]
-
-    # Form handling
     if request.method == 'POST':
         if 'add_expense' in request.POST:
-            expense_form = ExpenseForm(request.POST)
-            if expense_form.is_valid():
-                expense = expense_form.save(commit=False)
+            form_to_validate = ExpenseForm(request.POST, prefix='expense')
+            if form_to_validate.is_valid():
+                expense = form_to_validate.save(commit=False)
                 expense.creator = request.user
                 expense.save()
                 messages.success(request, _("Expense added successfully."))
-                return redirect(request.get_full_path())
+                return redirect(redirect_url)
+            else:
+                expense_form = form_to_validate
+
         elif 'add_other_income' in request.POST:
-            other_income_form = OtherIncomeForm(request.POST)
-            if other_income_form.is_valid():
-                income = other_income_form.save(commit=False)
+            form_to_validate = OtherIncomeForm(request.POST, prefix='income')
+            if form_to_validate.is_valid():
+                income = form_to_validate.save(commit=False)
                 income.creator = request.user
                 income.save()
                 messages.success(request, _("Income added successfully."))
-                return redirect(request.get_full_path())
+                return redirect(redirect_url)
+            else:
+                other_income_form = form_to_validate
 
-    expense_form = ExpenseForm()
-    other_income_form = OtherIncomeForm()
+    # --- بخش فیلتر و نمایش آمار (GET requests) ---
+    today_jalali = jdatetime.date.today()
+    selected_year = request.GET.get('year', str(today_jalali.year))
+    selected_month = request.GET.get('month', str(today_jalali.month))
+
+    # کوئری‌های پایه
+    expenses_base = Expense.objects.filter(creator=request.user)
+    other_incomes_base = OtherIncome.objects.filter(creator=request.user)
+
+    # محاسبه محدوده تاریخ میلادی برای ماه و سال شمسی انتخاب شده
+    year, month = int(selected_year), int(selected_month)
+    start_date_jalali = jdatetime.date(year, month, 1)
+    days_in_month = 31 if month < 7 else (30 if month < 12 else (30 if start_date_jalali.isleap() else 29))
+    end_date_jalali = jdatetime.date(year, month, days_in_month)
+    start_gregorian = start_date_jalali.togregorian()
+    end_gregorian = end_date_jalali.togregorian()
+
+    # فیلتر کردن داده‌ها بر اساس محدوده تاریخ
+    expenses_in_month = expenses_base.filter(spending_date__range=[start_gregorian, end_gregorian])
+    other_incomes_in_month = other_incomes_base.filter(deposit_date__range=[start_gregorian, end_gregorian])
+
+    # درآمد اشتراک‌ها برای ماه مربوطه باید جداگانه محاسبه شود
+    subscription_incomes_in_month = Subscription.objects.filter(
+        creator=request.user,
+        status='success',
+        payment_date__range=[start_gregorian, end_gregorian]
+    )
+
+    # --- محاسبه آمار ماهانه ---
+    total_subscription_income = subscription_incomes_in_month.aggregate(total=Sum('price'))['total'] or 0
+    total_other_income = other_incomes_in_month.aggregate(total=Sum('price'))['total'] or 0
+    total_income_monthly = total_subscription_income + total_other_income
+
+    total_expenses_monthly = expenses_in_month.aggregate(total=Sum('price'))['total'] or 0
+    net_profit_monthly = total_income_monthly - total_expenses_monthly
+
+    # محاسبه هزینه سرور و دسته‌بندی هزینه‌ها
+    server_costs_monthly = expenses_in_month.filter(is_server_cost=True).aggregate(total=Sum('price'))['total'] or 0
+    top_spending_monthly = expenses_in_month.values('issue').annotate(total=Sum('price'),
+                                                                      count=Count('issue')).order_by('-total')[:5]
 
     context = {
-        'expense_form': expense_form, 'other_income_form': other_income_form,
+        'expense_form': expense_form,
+        'other_income_form': other_income_form,
+        'years': range(today_jalali.year - 5, today_jalali.year + 2),
+        'months': {i: jdatetime.date(1, i, 1).strftime('%B') for i in range(1, 13)},
+        'selected_year': selected_year,
+        'selected_month': selected_month,
+
+        # آمار ماهانه
+        'total_income_monthly': total_income_monthly,
+        'total_expenses_monthly': total_expenses_monthly,
+        'net_profit_monthly': net_profit_monthly,
+        'server_costs_monthly': server_costs_monthly,
+
+        # لیست‌های ماهانه
+        'incomes_list': other_incomes_in_month.order_by('-deposit_date'),
+        'expenses_list': expenses_in_month.order_by('-spending_date'),
+        'top_spending_monthly': top_spending_monthly,
+    }
+    return render(request, 'dashboard/add_transaction.html', context)
+
+
+# END: CHANGE
+
+
+# ===================================================================
+# ویوهای مدیریت حساب بانکی (کد شما - بدون تغییر)
+# ===================================================================
+
+@login_required
+def bank_account_list_view(request):
+    """ویو برای نمایش لیست حساب‌های بانکی و افزودن حساب جدید"""
+    accounts = BankAccount.objects.filter(creator=request.user).order_by('bank_name')
+    if request.method == 'POST':
+        form = BankAccountForm(request.POST)
+        if form.is_valid():
+            account = form.save(commit=False)
+            account.creator = request.user
+            account.save()
+            messages.success(request, _("Bank account '{name}' created successfully.").format(name=account.bank_name))
+            return redirect('dashboard:bank_account_list')
+    else:
+        form = BankAccountForm()
+    return render(request, 'dashboard/bank_account_list.html', {'form': form, 'accounts': accounts})
+
+
+@login_required
+def bank_account_edit_view(request, pk):
+    """ویو برای ویرایش حساب بانکی"""
+    account = get_object_or_404(BankAccount, id=pk, creator=request.user)
+    if request.method == 'POST':
+        form = BankAccountForm(request.POST, instance=account)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Bank account '{name}' updated successfully.").format(name=account.bank_name))
+            return redirect('dashboard:bank_account_list')
+    else:
+        form = BankAccountForm(instance=account)
+    return render(request, 'dashboard/bank_account_form.html', {'form': form, 'account': account})
+
+
+@login_required
+@require_POST
+def bank_account_delete_view(request, pk):
+    """ویو برای حذف حساب بانکی"""
+    account = get_object_or_404(BankAccount, id=pk, creator=request.user)
+    account_name = account.bank_name
+    account.delete()
+    messages.success(request, _("Bank account '{name}' deleted successfully.").format(name=account_name))
+    return redirect('dashboard:bank_account_list')
+
+
+# ===================================================================
+# ویوهای اشتراک (کد شما - بدون تغییر)
+# ===================================================================
+
+@login_required
+def subscription_dashboard_view(request):
+    """
+    داشبورد اصلی برای نمایش و مدیریت سرویس‌های ماهانه
+    """
+    today = jdatetime.date.today()
+    selected_year = request.GET.get('year', str(today.year))
+    selected_month = request.GET.get('month', str(today.month))
+    status_filter = request.GET.get('status', 'all')
+    search_query = request.GET.get('q', '')
+
+    if request.method == 'POST':
+        if 'add_subscription' in request.POST:
+            form = SubscriptionForm(request.POST, user=request.user)
+            if form.is_valid():
+                subscription = form.save(commit=False)
+                subscription.creator = request.user
+                subscription.save()
+                messages.success(request, _("Subscription for '{customer}' added successfully.").format(
+                    customer=subscription.customer.name))
+                return redirect(
+                    f"{reverse_lazy('dashboard:subscription_dashboard')}?year={subscription.year}&month={subscription.month}")
+    else:
+        form = SubscriptionForm(user=request.user, initial={'year': selected_year, 'month': selected_month})
+
+    subscriptions_query = Subscription.objects.filter(
+        creator=request.user,
+        year=selected_year,
+        month=selected_month
+    ).select_related('customer', 'referrer', 'destination_bank').order_by('customer__name')
+
+    if status_filter == 'paid':
+        subscriptions_query = subscriptions_query.filter(status='success')
+    elif status_filter == 'unpaid':
+        subscriptions_query = subscriptions_query.filter(status='pending')
+
+    if search_query:
+        subscriptions_query = subscriptions_query.filter(customer__name__icontains=search_query)
+
+    all_subscriptions_for_month = Subscription.objects.filter(creator=request.user, year=selected_year,
+                                                              month=selected_month)
+    total_giga = subscriptions_query.aggregate(total=Sum('giga'))['total'] or 0
+    paid_amount = all_subscriptions_for_month.filter(status='success').aggregate(total=Sum('price'))['total'] or 0
+    unpaid_amount = all_subscriptions_for_month.filter(status='pending').aggregate(total=Sum('price'))['total'] or 0
+    total_amount = paid_amount + unpaid_amount
+
+    context = {
+        'form': form,
+        'subscriptions': subscriptions_query,
+        'total_giga_sold': total_giga,
+        'paid_amount': paid_amount,
+        'unpaid_amount': unpaid_amount,
+        'total_amount': total_amount,
+        'years': range(today.year - 5, today.year + 2),
+        'months': {i: jdatetime.date(1, i, 1).strftime('%B') for i in range(1, 13)},
+        'selected_year': int(selected_year),
+        'selected_month': int(selected_month),
+        'status_filter': status_filter,
+        'search_query': search_query,
+    }
+    return render(request, 'dashboard/subscription_dashboard.html', context)
+
+
+@login_required
+def subscription_edit_view(request, pk):
+    """ویو برای ویرایش یک اشتراک"""
+    subscription = get_object_or_404(Subscription, id=pk, creator=request.user)
+    if request.method == 'POST':
+        form = SubscriptionForm(request.POST, instance=subscription, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Subscription for '{customer}' updated successfully.").format(
+                customer=subscription.customer.name))
+            return redirect(
+                f"{reverse_lazy('dashboard:subscription_dashboard')}?year={subscription.year}&month={subscription.month}")
+    else:
+        form = SubscriptionForm(instance=subscription, user=request.user)
+
+    return render(request, 'dashboard/subscription_form.html', {'form': form, 'subscription': subscription})
+
+
+@login_required
+@require_POST
+def subscription_delete_view(request, pk):
+    """ویو برای حذف یک اشتراک"""
+    subscription = get_object_or_404(Subscription, id=pk, creator=request.user)
+    customer_name = subscription.customer.name
+    year, month = subscription.year, subscription.month
+    subscription.delete()
+    messages.success(request, _("Subscription for '{name}' deleted successfully.").format(name=customer_name))
+    return redirect(f"{reverse_lazy('dashboard:subscription_dashboard')}?year={year}&month={month}")
+
+
+# ===================================================================
+# ویوهای مشتریان (کد شما - بدون تغییر)
+# ===================================================================
+
+@login_required
+def customer_profile_list_view(request):
+    """
+    ویو جدید برای نمایش لیست مشتریان و افزودن مشتری جدید
+    """
+    customers = CustomerProfile.objects.filter(creator=request.user).order_by('name')
+    customer_count = customers.count()
+
+    if request.method == 'POST':
+        form = CustomerProfileForm(request.POST, user=request.user)
+        if form.is_valid():
+            customer = form.save(commit=False)
+            customer.creator = request.user
+            customer.save()
+            messages.success(request, _("Customer '{name}' created successfully.").format(name=customer.name))
+            return redirect('dashboard:customer_profile_list')
+    else:
+        form = CustomerProfileForm(user=request.user)
+
+    return render(request, 'dashboard/customer_profile_list.html', {
+        'form': form,
+        'customers': customers,
+        'customer_count': customer_count
+    })
+
+
+@login_required
+def edit_customer_profile(request, pk):
+    """
+    ویو جدید برای ویرایش پروفایل مشتری
+    """
+    customer = get_object_or_404(CustomerProfile, id=pk, creator=request.user)
+    if request.method == 'POST':
+        form = CustomerProfileForm(request.POST, instance=customer, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Customer '{name}' updated successfully.").format(name=customer.name))
+            return redirect('dashboard:customer_profile_list')
+    else:
+        form = CustomerProfileForm(instance=customer, user=request.user)
+
+    return render(request, 'dashboard/edit_customer_profile.html', {'form': form, 'customer': customer})
+
+
+# ===================================================================
+# START: CHANGE - ویو گزارش مالی ساده‌سازی شد (فقط نمایش)
+# ===================================================================
+@login_required
+def financial_report_view(request):
+    """
+    گزارش مالی بهبودیافته (فقط برای نمایش داده‌ها).
+    """
+    # **تغییر**: منطق پردازش فرم‌ها از اینجا حذف شده است.
+
+    # ------------------- منطق فیلتر و آمار (کد شما - بدون تغییر) -------------------
+    today_jalali = jdatetime.date.today()
+    selected_year = request.GET.get('year', str(today_jalali.year))
+    selected_month = request.GET.get('month')
+
+    expenses_base = Expense.objects.filter(creator=request.user)
+    other_incomes_base = OtherIncome.objects.filter(creator=request.user)
+    subscriptions_base = Subscription.objects.filter(creator=request.user, status='success')
+
+    expenses_stats = expenses_base
+    other_incomes_stats = other_incomes_base
+    subscription_incomes_stats = subscriptions_base
+
+    if selected_year and selected_year.isdigit():
+        year = int(selected_year)
+        start_date_jalali = jdatetime.date(year, 1, 1)
+        end_date_jalali = jdatetime.date(year, 12, 29)
+        if jdatetime.date(year, 1, 1).isleap():
+            end_date_jalali = jdatetime.date(year, 12, 30)
+
+        start_gregorian = start_date_jalali.togregorian()
+        end_gregorian = end_date_jalali.togregorian()
+
+        if selected_month and selected_month.isdigit():
+            month = int(selected_month)
+            start_date_jalali = jdatetime.date(year, month, 1)
+            days_in_month = 31 if month < 7 else (30 if month < 12 else (30 if start_date_jalali.isleap() else 29))
+            end_date_jalali = jdatetime.date(year, month, days_in_month)
+            start_gregorian = start_date_jalali.togregorian()
+            end_gregorian = end_date_jalali.togregorian()
+
+        expenses_stats = expenses_stats.filter(spending_date__range=[start_gregorian, end_gregorian])
+        other_incomes_stats = other_incomes_stats.filter(deposit_date__range=[start_gregorian, end_gregorian])
+        subscription_incomes_stats = subscription_incomes_stats.filter(
+            payment_date__range=[start_gregorian, end_gregorian])
+
+    total_subscription_income = subscription_incomes_stats.aggregate(total=Sum('price'))['total'] or 0
+    total_other_income = other_incomes_stats.aggregate(total=Sum('price'))['total'] or 0
+    total_income = total_subscription_income + total_other_income
+    total_expenses = expenses_stats.aggregate(total=Sum('price'))['total'] or 0
+    net_profit = total_income - total_expenses
+
+    today_gregorian = timezone.now().date()
+    total_today_income = (Subscription.objects.filter(creator=request.user, status='success',
+                                                      payment_date=today_gregorian).aggregate(s=Sum('price'))[
+                              's'] or 0) + \
+                         (OtherIncome.objects.filter(creator=request.user, deposit_date=today_gregorian).aggregate(
+                             s=Sum('price'))['s'] or 0)
+    total_today_expenses = \
+    Expense.objects.filter(creator=request.user, spending_date=today_gregorian).aggregate(s=Sum('price'))['s'] or 0
+
+    # ------------------- منطق نمودار (چارت) (کد شما - با بهبود جزئی) -------------------
+    timeframe = request.GET.get('timeframe', 'monthly')
+    chart_labels, income_data, expense_data = [], [], []
+
+    chart_year = int(selected_year)
+    # اگر ماه انتخاب نشده باشد، نمایش نمودار همیشه باید "ماهانه" باشد
+    if not selected_month:
+        timeframe = 'monthly'
+
+    if timeframe == 'daily' and selected_month and selected_month.isdigit():
+        chart_month = int(selected_month)
+        start_date = jdatetime.date(chart_year, chart_month, 1)
+        days_in_month = 31 if chart_month < 7 else 30
+        if chart_month == 12: days_in_month = 29 if not start_date.isleap() else 30
+
+        chart_labels = [d.strftime('%d') for d in [start_date + timedelta(days=i) for i in range(days_in_month)]]
+
+        month_start_g = start_date.togregorian()
+        month_end_g = (start_date + timedelta(days=days_in_month - 1)).togregorian()
+
+        income_q = subscriptions_base.filter(payment_date__range=[month_start_g, month_end_g])
+        other_income_q = other_incomes_base.filter(deposit_date__range=[month_start_g, month_end_g])
+        expense_q = expenses_base.filter(spending_date__range=[month_start_g, month_end_g])
+
+        for day in range(1, days_in_month + 1):
+            gregorian_day = jdatetime.date(chart_year, chart_month, day).togregorian()
+            daily_income = (income_q.filter(payment_date=gregorian_day).aggregate(s=Sum('price'))['s'] or 0) + \
+                           (other_income_q.filter(deposit_date=gregorian_day).aggregate(s=Sum('price'))['s'] or 0)
+            daily_expense = expense_q.filter(spending_date=gregorian_day).aggregate(s=Sum('price'))['s'] or 0
+            income_data.append(int(daily_income))
+            expense_data.append(int(daily_expense))
+    else:
+        timeframe = 'monthly'  # اطمینان از اینکه تایم‌فریم ماهانه است
+        chart_labels = [jdatetime.date(1, i, 1).strftime('%B') for i in range(1, 13)]
+
+        year_start_g = jdatetime.date(chart_year, 1, 1).togregorian()
+        year_end_g = (
+                    jdatetime.date(chart_year, 12, 1) + timedelta(days=30)).togregorian()  # راه ساده‌تر برای پایان سال
+
+        income_by_month = {i: 0 for i in range(1, 13)}
+        expense_by_month = {i: 0 for i in range(1, 13)}
+
+        all_incomes = subscriptions_base.filter(payment_date__year=year_start_g.year).annotate(
+            month_g=TruncMonth('payment_date')).values('month_g').annotate(total=Sum('price'))
+        all_other_incomes = other_incomes_base.filter(deposit_date__year=year_start_g.year).annotate(
+            month_g=TruncMonth('deposit_date')).values('month_g').annotate(total=Sum('price'))
+        all_expenses = expenses_base.filter(spending_date__year=year_start_g.year).annotate(
+            month_g=TruncMonth('spending_date')).values('month_g').annotate(total=Sum('price'))
+
+        for inc in all_incomes: income_by_month[inc['month_g'].month] += inc['total']
+        for inc in all_other_incomes: income_by_month[inc['month_g'].month] += inc['total']
+        for exp in all_expenses: expense_by_month[exp['month_g'].month] += exp['total']
+
+        income_data = [int(income_by_month.get(i, 0)) for i in range(1, 13)]
+        expense_data = [int(expense_by_month.get(i, 0)) for i in range(1, 13)]
+
+    # ------------------- منطق فعالیت‌های اخیر (کد شما - بدون تغییر) -------------------
+    recent_expenses = Expense.objects.filter(creator=request.user).order_by('-created_at')[:5]
+    recent_incomes = OtherIncome.objects.filter(creator=request.user).order_by('-created_at')[:5]
+    recent_customers = CustomerProfile.objects.filter(creator=request.user).order_by('-created_at')[:5]
+    recent_subscriptions = Subscription.objects.filter(creator=request.user, status='success').order_by(
+        '-payment_date')[:5]
+
+    recent_activities = sorted(
+        chain(recent_expenses, recent_incomes, recent_customers, recent_subscriptions),
+        key=lambda instance: getattr(instance, 'created_at', None) or getattr(instance, 'payment_date', None),
+        reverse=True
+    )[:7]
+
+    top_expenses = expenses_stats.values('issue').annotate(total=Sum('price'), count=Count('issue')).order_by('-total')[
+        :10]
+
+    context = {
+        # **تغییر**: فرم‌ها از کانتکست این ویو حذف شدند
         'expenses': expenses_stats.order_by('-spending_date'),
         'other_incomes': other_incomes_stats.order_by('-deposit_date'),
-        'months': get_persian_months(), 'selected_month': request.GET.get('month'),
-        'total_income': total_income, 'total_expenses': total_expenses,
+        'years': range(today_jalali.year - 5, today_jalali.year + 2),
+        'months': {i: jdatetime.date(1, i, 1).strftime('%B') for i in range(1, 13)},
+        'selected_year': selected_year,
+        'selected_month': selected_month,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
         'net_profit': net_profit,
         'total_today_income': total_today_income,
         'total_today_expenses': total_today_expenses,
@@ -204,65 +495,19 @@ def financial_report_view(request):
     return render(request, 'dashboard/financial_report.html', context)
 
 
-@login_required
-def customer_dashboard_view(request):
-    customers_base = Customer.objects.filter(creator=request.user)
-
-    # FINAL FIX: A more robust way to get a unique, sorted list of non-empty referrers.
-    referrer_list = Customer.objects.filter(creator=request.user).exclude(referrer__exact='').order_by(
-        'referrer').values_list('referrer', flat=True).distinct()
-
-    selected_referrer = request.GET.get('referrer')
-    if selected_referrer:
-        customers_base = customers_base.filter(referrer=selected_referrer)
-
-    selected_status = request.GET.get('status')
-    if selected_status in ['success', 'pending']:
-        customers_base = customers_base.filter(status=selected_status)
-
-    customers = filter_queryset_by_month(request, customers_base, 'payment_date')
-
-    stats_queryset = customers
-    total_giga = stats_queryset.aggregate(total=Sum('giga'))['total'] or 0
-    paid_amount = stats_queryset.filter(status='success').aggregate(total=Sum('price'))['total'] or 0
-    unpaid_amount = stats_queryset.filter(status='pending').aggregate(total=Sum('price'))['total'] or 0
-
-    if request.method == 'POST':
-        form = CustomerForm(request.POST)
-        if form.is_valid():
-            customer = form.save(commit=False)
-            customer.creator = request.user
-            customer.save()
-            messages.success(request, _("Customer '{name}' added successfully.").format(name=customer.name))
-            return redirect(request.get_full_path())
-    else:
-        form = CustomerForm()
-
-    context = {
-        'form': form, 'customers': customers.order_by('-created_at'),
-        'total_giga': total_giga,
-        'paid_amount': paid_amount,
-        'unpaid_amount': unpaid_amount,
-        'months': get_persian_months(), 'selected_month': request.GET.get('month'),
-        'referrer_list': referrer_list,
-        'selected_referrer': selected_referrer,
-        'selected_status': selected_status,
-    }
-    return render(request, 'dashboard/customer_dashboard.html', context)
-
+# ===================================================================
+# سایر ویوها (کد شما - بدون تغییر)
+# ===================================================================
 
 @login_required
-def edit_customer(request, pk):
-    customer = get_object_or_404(Customer, id=pk, creator=request.user)
-    if request.method == 'POST':
-        form = CustomerForm(request.POST, instance=customer)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _("Customer '{name}' updated successfully.").format(name=customer.name))
-            return redirect('customer_dashboard')
-    else:
-        form = CustomerForm(instance=customer)
-    return render(request, 'dashboard/edit_customer.html', {'form': form, 'customer': customer})
+@require_POST
+def delete_customer_profile(request, pk):
+    customer = get_object_or_404(CustomerProfile, id=pk, creator=request.user)
+    customer_name = customer.name
+    customer.delete()
+    messages.success(request, _("Customer '{name}' and all their subscriptions deleted successfully.").format(
+        name=customer_name))
+    return redirect('dashboard:customer_profile_list')
 
 
 @login_required
@@ -272,147 +517,61 @@ def profile_view(request):
         user_form = UserProfileForm(request.POST, instance=request.user)
         password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
         profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
-
         if 'change_details' in request.POST and user_form.is_valid():
             user_form.save()
             messages.success(request, _('Profile details updated successfully.'))
-            return redirect('profile')
-
+            return redirect('dashboard:profile')
         if 'change_password' in request.POST and password_form.is_valid():
             user = password_form.save()
             update_session_auth_hash(request, user)
             messages.success(request, _('Password changed successfully.'))
-            return redirect('profile')
-
+            return redirect('dashboard:profile')
         if 'change_avatar' in request.POST and profile_form.is_valid():
             profile_form.save()
             messages.success(request, _('Your avatar was successfully updated!'))
-            return redirect('profile')
-
+            return redirect('dashboard:profile')
     else:
         user_form = UserProfileForm(instance=request.user)
         password_form = CustomPasswordChangeForm(user=request.user)
         profile_form = ProfileUpdateForm(instance=profile)
-
     context = {'user_form': user_form, 'password_form': password_form, 'profile_form': profile_form}
     return render(request, 'dashboard/profile.html', context)
 
 
 @login_required
+@require_POST
 def set_theme_view(request):
-    if request.method == 'POST':
-        theme = request.POST.get('theme')
-        if theme in ['light', 'dark']:
-            profile, created = Profile.objects.get_or_create(user=request.user)
-            profile.theme = theme
-            profile.save()
-            return JsonResponse({'status': 'ok'})
+    theme = request.POST.get('theme')
+    if theme in ['light', 'dark']:
+        profile, created = Profile.objects.get_or_create(user=request.user)
+        profile.theme = theme
+        profile.save()
+        return JsonResponse({'status': 'ok'})
     return JsonResponse({'status': 'error'}, status=400)
 
 
 @login_required
-def delete_customer(request, pk):
-    customer = get_object_or_404(Customer, id=pk, creator=request.user)
-    if request.method == 'POST':
-        messages.success(request, _("Customer '{name}' deleted successfully.").format(name=customer.name))
-        customer.delete()
-    return redirect('customer_dashboard')
-
-
-@login_required
+@require_POST
 def delete_expense(request, pk):
     expense = get_object_or_404(Expense, id=pk, creator=request.user)
-    if request.method == 'POST':
-        expense.delete()
-        messages.success(request, _("Expense deleted successfully."))
-    return redirect('financial_report')
+    expense.delete()
+    messages.success(request, _("Expense deleted successfully."))
+    return redirect('dashboard:financial_report')
 
 
 @login_required
+@require_POST
 def delete_other_income(request, pk):
     income = get_object_or_404(OtherIncome, id=pk, creator=request.user)
-    if request.method == 'POST':
-        income.delete()
-        messages.success(request, _("Income deleted successfully."))
-    return redirect('financial_report')
+    income.delete()
+    messages.success(request, _("Income deleted successfully."))
+    return redirect('dashboard:financial_report')
 
 
-# --- ویوهای جدید برای ایمپورت و اکسپورت ---
-
-@login_required
-def import_export_view(request):
-    if request.method == 'POST' and request.FILES.get('csv_file'):
-        file = request.FILES['csv_file']
-
-        if not file.name.endswith('.csv'):
-            messages.error(request, _("File is not a CSV type."))
-            return redirect('import_export')
-
-        try:
-            df = pd.read_csv(file)
-            df = df.where(pd.notna(df), None)  # تبدیل مقادیر NaN به None
-            errors = []
-            count = 0
-
-            for index, row in df.iterrows():
-                try:
-                    payment_date_gregorian = None
-                    if row.get('Date of deposit'):
-                        jalali_date_str = str(row['Date of deposit'])
-                        parts = list(map(int, jalali_date_str.split('/')))
-                        payment_date_gregorian = jdatetime.date(parts[0], parts[1], parts[2]).togregorian()
-
-                    status_val = 'pending'
-                    check_val = str(row.get('Check', 'false')).lower()
-                    if check_val in ['true', '1', 'yes']:
-                        status_val = 'success'
-
-                    Customer.objects.update_or_create(
-                        name=row['User'],
-                        creator=request.user,
-                        defaults={
-                            'expire_date': pd.to_datetime(row.get('Date expaire')).date() if row.get(
-                                'Date expaire') else None,
-                            'price': int(row.get('Price', 0)),
-                            'giga': int(row.get('GB', 0)),
-                            'phone_number': str(row.get('NUMBER PHONE', '')) if row.get('NUMBER PHONE') else '',
-                            'payment_date': payment_date_gregorian,
-                            'referrer': str(row.get('refrale', '')) if row.get('refrale') else '',
-                            'bank_name': str(row.get('Bank Name', '')) if row.get('Bank Name') else '',
-                            'status': status_val
-                        }
-                    )
-                    count += 1
-                except Exception as e:
-                    errors.append(f"Row {index + 2}: {row.get('User')} - {e}")
-
-            if errors:
-                for error in errors: messages.error(request, error)
-            if count > 0:
-                messages.success(request, _("{count} records imported or updated successfully.").format(count=count))
-
-        except Exception as e:
-            messages.error(request, f"Error processing file: {e}")
-
-        return redirect('import_export')
-
-    return render(request, 'dashboard/import_export.html')
-
-
-@login_required
-def export_customers_csv(request):
-    queryset = Customer.objects.filter(creator=request.user)
-    df = pd.DataFrame(list(
-        queryset.values('name', 'expire_date', 'price', 'giga', 'phone_number', 'payment_date', 'status', 'referrer',
-                        'bank_name')))
-    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="customers.csv"'
-    df.to_csv(path_or_buf=response, index=False, encoding='utf-8-sig')
-    return response
-
-# NEW: Add these two views at the end of the file
 def custom_404(request, exception):
     return render(request, '404.html', {}, status=404)
 
+
 def custom_403(request, exception):
     return render(request, '403.html', {}, status=403)
+

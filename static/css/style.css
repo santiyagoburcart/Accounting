@@ -1,224 +1,203 @@
-/* --- متغیرهای تم برای حالت تاریک و روشن --- */
-:root, [data-theme="dark"] {
-    --bg-primary: #1a1b26;
-    --bg-secondary: #24283b;
-    --bg-surface: rgba(41, 42, 61, 0.6);
-    --text-primary: #c0caf5;
-    --text-secondary: #a9b1d6;
-    --border-color: #414868;
-    --accent-purple: #bb9af7;
-    --accent-pink: #f7768e;
-    --accent-green: #4ade80;
-    --accent-blue: #7aa2f7;
-    --accent-red: #f7768e;
-    --accent-yellow: #e0af68;
+/* =================================================================== */
+/* START: Color Palette & Theme Variables
+/* =================================================================== */
+:root, body[data-theme='dark'] {
+    --bg-primary: #111827;
+    --bg-secondary: #1F2937;
+    --glass-bg: rgba(31, 41, 55, 0.6);
+    --border-color: #374151;
+    --text-primary: #F9FAFB;
+    --text-secondary: #9CA3AF;
+    --accent: #3B82F6;
+    --accent-hover: #2563EB;
+    --success: #10B981;
+    --danger: #EF4444;
 }
 
-[data-theme="light"] {
-    --bg-primary: #f0f2f5;
-    --bg-secondary: #ffffff;
-    --bg-surface: rgba(255, 255, 255, 0.8);
-    --text-primary: #3d59a1;
-    --text-secondary: #565f89;
-    --border-color: #e5e7eb;
+body[data-theme='light'] {
+    --bg-primary: #F3F4F6;
+    --bg-secondary: #FFFFFF;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --border-color: #E5E7EB;
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --accent: #3B82F6;
+    --accent-hover: #2563EB;
+    --success: #059669;
+    --danger: #DC2626;
 }
 
-/* --- استایل‌های پایه --- */
+/* =================================================================== */
+/* START: Base Styles & Custom Components
+/* =================================================================== */
+
 body {
-    font-family: 'Vazirmatn', sans-serif;
-    background-color: var(--bg-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     color: var(--text-primary);
-    transition: background-color 0.3s, color 0.3s;
 }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
 
 .glass-card {
-    background: var(--bg-surface);
-    backdrop-filter: blur(10px);
+    background-color: var(--glass-bg);
     border: 1px solid var(--border-color);
-    border-radius: 1.5rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s, border-color 0.3s;
+    border-radius: 1rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
-/* --- استایل فرم‌ها --- */
-.form-input, .jdatepicker, textarea, input[type="date"], input[type="text"], input[type="number"], input[type="password"], input[type="email"], select {
+/* Forms */
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+.form-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--accent);
+}
+.form-container p { display: flex; flex-direction: column; gap: 0.5rem; }
+.form-container label { font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); }
+
+/* Buttons */
+.btn { padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; transform: scale(1); }
+.btn:active { transform: scale(0.95); }
+.btn-primary { background-color: var(--accent); color: white; }
+.btn-primary:hover { background-color: var(--accent-hover); }
+.btn-secondary { background-color: rgba(128, 128, 128, 0.2); color: var(--text-primary); }
+.btn-secondary:hover { background-color: rgba(128, 128, 128, 0.4); }
+.btn-danger { background-color: var(--danger); color: white; }
+.btn-danger:hover { filter: brightness(1.2); }
+.btn-gradient { color: white; background-image: linear-gradient(to right, #3B82F6, #8B5CF6); }
+.btn-gradient:hover { filter: brightness(1.2); }
+
+/* Badges */
+.badge { padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; display: inline-flex; align-items: center; }
+.badge-success { background-color: rgba(16, 185, 129, 0.2); color: #34D399; }
+.badge-danger { background-color: rgba(239, 68, 68, 0.2); color: #F87171; }
+
+/* Alerts */
+.alert { padding: 1rem; border-radius: 0.5rem; }
+.alert-success { background-color: rgba(16, 185, 129, 0.2); color: #A7F3D0; }
+.alert-error { background-color: rgba(239, 68, 68, 0.2); color: #FCA5A5; }
+
+/* Sidebar */
+.nav-link { display: flex; align-items: center; padding: 0.75rem; border-radius: 0.5rem; color: var(--text-secondary); transition: all 0.2s; }
+.nav-link:hover { background-color: var(--border-color); color: var(--text-primary); }
+.nav-link.active { background-color: var(--accent); color: white; }
+
+/* Toggle Switch */
+.switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; }
+input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider:before { transform: translateX(22px); }
+.slider.round { border-radius: 34px; }
+.slider.round:before { border-radius: 50%; }
+
+/* START: CHANGE - استایل جدید برای افکت Hover ردیف‌های جدول */
+tbody tr:hover {
+    background-color: var(--glass-bg);
+}
+/* END: CHANGE */
+
+/* Select2 Theme */
+.select2-container--classic .select2-selection--single { background-color: var(--bg-secondary) !important; border: 1px solid var(--border-color) !important; border-radius: 0.5rem !important; height: 46px !important; padding-top: 2px; }
+.select2-container--classic .select2-selection--single .select2-selection__rendered { color: var(--text-primary) !important; line-height: 42px !important; }
+.select2-container--classic .select2-selection--single .select2-selection__arrow b { border-color: var(--text-secondary) transparent transparent transparent !important; margin-top: 4px !important; }
+.select2-dropdown { background-color: var(--bg-secondary) !important; border: 1px solid var(--border-color) !important; }
+.select2-container--classic .select2-results__option--highlighted.select2-results__option[aria-selected] { background-color: var(--accent) !important; }
+.select2-search--dropdown .select2-search__field { background-color: var(--bg-primary) !important; color: var(--text-primary) !important; border: 1px solid var(--border-color) !important; }
+
+/* =============================================== */
+/* ==         Modern Form Styling             == */
+/* =============================================== */
+
+.form-label {
+    display: block;
+    font-size: 0.875rem; /* 14px */
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem; /* 8px */
+}
+
+/* استایل اصلی برای تمام ورودی‌های فرم */
+.form-input,
+.form-select {
+    width: 100%;
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
-    width: 100%;
-    transition: all 0.3s;
-    box-sizing: border-box;
+    border-radius: 0.5rem; /* 8px */
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    padding-top: 0.75rem; /* 12px */
+    padding-bottom: 0.75rem; /* 12px */
+    padding-right: 1rem; /* 16px */
+    padding-left: 2.75rem; /* 44px for icon */
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
-.form-input:focus, .jdatepicker:focus, textarea:focus, input[type="date"]:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus {
+
+/* حالت فوکوس: وقتی کاربر روی فیلد کلیک می‌کند */
+.form-input:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); /* a nice blue glow */
+    border-color: var(--accent-blue);
     outline: none;
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-purple) 30%, transparent);
 }
-.form-container label, .form-label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); }
-.form-container ul.errorlist { padding: 0; margin: 0.5rem 0 0 0; }
-.form-container .errorlist li, .error-message { color: var(--accent-red); font-size: 0.875rem; list-style: none; }
-.form-container p { margin: 0; }
-.form-container .helptext { font-size: 0.75rem; color: var(--accent-blue); margin-top: 0.25rem; }
 
-/* --- استایل دکمه‌ها --- */
-.btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.75rem;
-    font-weight: 700;
-    transition: all 0.3s ease;
-    text-align: center;
-    cursor: pointer;
-    border: none;
-}
-.btn-gradient {
-    background-image: linear-gradient(to right, var(--accent-pink), var(--accent-purple));
-    box-shadow: 0 4px 15px 0 color-mix(in srgb, var(--accent-purple) 40%, transparent);
-    color: white;
-}
-.btn-gradient:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px 0 color-mix(in srgb, var(--accent-purple) 50%, transparent);
-}
-.btn-secondary {
-    background-color: var(--border-color);
+/* رنگ متن راهنما (placeholder) */
+.form-input::placeholder {
     color: var(--text-secondary);
-}
-.btn-secondary:hover {
-    background-color: color-mix(in srgb, var(--border-color) 80%, black);
+    opacity: 0.6;
 }
 
-/* --- Floating Action Button (Add Customer) --- */
-.fab-container {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 30; /* Lower z-index */
-}
-.fab {
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: 50%;
+/* استایل آیکون داخل فیلد ورودی */
+.form-icon {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
     display: flex;
     align-items: center;
-    justify-content: center;
-    /* NEW: Changed color to blue/purple gradient */
-    background-image: linear-gradient(to right, var(--accent-blue), var(--accent-purple));
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    color: white;
-    transition: all 0.3s ease;
-}
-.fab:hover {
-    transform: scale(1.1) rotate(15deg);
-    box-shadow: 0 6px 25px rgba(0,0,0,0.3);
+    padding-left: 1rem; /* 16px */
+    color: var(--text-secondary);
 }
 
-/* --- Styles for Status Badges (Original Style) --- */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-weight: 500;
-    font-size: 0.875rem;
-    border: 1px solid transparent;
-}
-.status-success {
-    background-color: rgba(74, 222, 128, 0.1);
-    color: var(--accent-green);
-    border-color: rgba(74, 222, 128, 0.5);
-}
-.status-pending {
-    background-color: rgba(224, 175, 104, 0.1);
-    color: var(--accent-yellow);
-    border-color: rgba(224, 175, 104, 0.5);
-}
-
-/* --- Styles for Filters --- */
-.filter-container { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
-.filter-group-title { font-weight: 500; color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem; }
-.filter-btn-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; background-color: var(--bg-secondary); padding: 0.5rem; border-radius: 0.75rem; }
-.filter-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; font-size: 0.875rem; color: var(--text-secondary); transition: all 0.2s ease-in-out; }
-.filter-btn:hover { background-color: var(--border-color); color: var(--text-primary); }
-.filter-btn.active { background-color: var(--bg-primary); color: var(--text-primary); font-weight: 700; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot-success { background-color: var(--accent-green); }
-.dot-pending { background-color: var(--accent-yellow); }
-
-/* --- Styles for Customer List --- */
-.customer-list { display: flex; flex-direction: column; }
-.customer-card {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-color);
-    transition: all 0.2s ease-in-out;
-}
-.customer-list > :first-child { border-top: 1px solid var(--border-color); }
-.customer-card:hover {
+/* استایل چک‌باکس "مرا به خاطر بسپار" */
+.form-checkbox {
+    height: 1rem; /* 16px */
+    width: 1rem; /* 16px */
+    border-radius: 0.25rem; /* 4px */
+    border-color: var(--border-color);
     background-color: var(--bg-secondary);
+    color: var(--accent-blue);
 }
-.customer-info { display: grid; grid-template-columns: minmax(150px, 3fr) minmax(100px, 1.5fr) minmax(120px, 2fr) minmax(120px, 2fr); align-items: center; gap: 1.5rem; width: 100%; }
-.customer-name { font-weight: 700; color: var(--text-primary); }
-.customer-detail { font-size: 0.875rem; color: var(--text-secondary); }
-.customer-price { font-weight: 700; color: var(--accent-green); }
-.customer-actions { display: flex; align-items: center; gap: 0.75rem; }
-.customer-actions a, .customer-actions button { color: var(--text-secondary); background: none; border: none; cursor: pointer; }
-.customer-actions a:hover, .customer-actions button:hover { color: var(--accent-purple); }
-.customer-actions form { margin: 0; }
-@media (max-width: 768px) { .customer-info { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 500px) { .customer-info { grid-template-columns: 1fr; } }
-
-/* --- Styles for Modal --- */
-.modal-overlay {
-    z-index: 50; /* Higher z-index */
-    position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+.form-checkbox:focus {
+    --tw-ring-color: var(--accent-blue);
 }
-.modal-overlay.active { opacity: 1; visibility: visible; }
-.modal-content { transform: scale(0.95); transition: transform 0.3s; }
-.modal-overlay.active .modal-content { transform: scale(1); }
+/* =============================================== */
+/* ==         Form Spacing Fix                == */
+/* =============================================== */
 
-/* --- Table Styles for Financial Report etc. --- */
-.custom-table-container { overflow-x: auto; }
-.custom-table { width: 100%; text-align: start; border-collapse: collapse; }
-.custom-table thead { border-bottom: 2px solid var(--border-color); }
-.custom-table th { padding: 0.75rem 1rem; font-size: 0.875rem; color: var(--text-secondary); font-weight: 600; }
-.custom-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background-color 0.2s ease; }
-.custom-table tbody tr:last-child { border-bottom: none; }
-.custom-table tbody tr:hover { background-color: var(--bg-secondary); }
-.custom-table td { padding: 1rem; vertical-align: middle; }
-
-/* General Page Styles */
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.page-title { font-size: 1.5rem; font-weight: 700; }
-
-/* Toggle Switch */
-.toggle-wrapper { display: flex; align-items: center; gap: 0.75rem; }
-.toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; background-color: var(--border-color); border-radius: 9999px; transition: background-color 0.2s ease-in-out; }
-.toggle-switch::before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background-color: white; top: 4px; inset-inline-start: 4px; transition: transform 0.2s ease-in-out; }
-input[type="checkbox"]:checked + .toggle-switch { background-color: var(--accent-purple); }
-input[type="checkbox"]:checked + .toggle-switch::before { transform: translateX(22px); }
-.form-container input[type="checkbox"] { display: none; }
-
-/* Radial Progress from original file */
-.radial-progress { --size: 60px; --thickness: 6px; width: var(--size); height: var(--size); border-radius: 50%; background: conic-gradient(var(--clr, #7aa2f7) calc(var(--value) * 1%), var(--border-color) 0); display: grid; place-content: center; position: relative; }
-.radial-progress::before { content: ''; position: absolute; inset: var(--thickness); background: var(--bg-secondary); border-radius: 50%; }
-.radial-progress-label { position: relative; font-size: 1rem; font-weight: bold; }
-
-/* NEW: Mobile Sidebar Styles */
-#sidebar.open {
-    transform: translateX(0);
+/* این کد به هر فرمی که این کلاس‌ها را داشته باشد،
+  فاصله عمودی مناسبی بین فیلدهای آن اضافه می‌کند.
+*/
+.form-container.space-y-6 > div {
+    margin-top: 1.5rem; /* 24px */
 }
 
-/* Jalali Date Picker Styles */
-.datepicker-plot-area { z-index: 1000 !important; font-family: 'Vazirmatn', sans-serif; background: var(--bg-secondary) !important; border: 1px solid var(--border-color) !important; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-.datepicker-days-view .table-days td.day.today, .datepicker-days-view .table-days td.day.selected { background-color: var(--accent-purple) !important; color: white !important; border-radius: 50%; }
-.datepicker-navigator .pwt-btn-next, .datepicker-navigator .pwt-btn-prev { color: var(--text-primary) !important; }
-.datepicker-navigator .pwt-btn-switch { color: var(--text-primary) !important; font-weight: bold; }
-.datepicker-days-view .table-days th { color: var(--text-secondary) !important; }
-.datepicker-days-view .table-days td.day { color: var(--text-primary) !important; }
-.datepicker-days-view .table-days td.day.old { color: var(--border-color) !important; }
+.form-container.space-y-6 > div:first-child {
+    margin-top: 0;
+}
+
+/* برای فرم‌هایی که از گرید استفاده می‌کنند هم فاصله عمودی را تضمین می‌کند */
+.form-container .grid {
+    gap: 1.5rem; /* 24px */
+}

@@ -1,0 +1,22 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Bank Account" %}{% endblock %}
+{% block page_title %}{% trans "Editing" %} {{ account.bank_name }}{% endblock %}
+{% block page_title_desktop %}{% trans "Editing Bank Account:" %} {{ account.bank_name }}{% endblock %}
+
+{% block content %}
+    <div class="max-w-lg mx-auto">
+        <div class="glass-card p-8">
+            <h2 class="text-2xl font-bold mb-6 text-center">{% trans "Edit Bank Account Information" %}</h2>
+            <form method="post" class="space-y-4 form-container">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" class="w-full btn btn-gradient">{% trans "Save Changes" %}</button>
+                    <a href="{% url 'dashboard:bank_account_list' %}" class="w-full btn btn-secondary">{% trans "Cancel" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

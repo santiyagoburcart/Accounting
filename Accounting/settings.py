@@ -153,6 +153,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Login settings
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'financial_report'
+LOGIN_REDIRECT_URL = 'dashboard:financial_report'
 LOGOUT_REDIRECT_URL = 'login'
-

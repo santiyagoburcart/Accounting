@@ -1,17 +1,6 @@
 from django.contrib import admin
-from .models import Customer, Expense, OtherIncome
+from .models import  Expense, OtherIncome
 
-@admin.register(Customer)
-class CustomerAdmin(admin.ModelAdmin):
-    """
-    تنظیمات نمایش مدل مشتری در پنل ادمین
-    """
-    # UPDATED: Replaced 'is_paid' with 'status'
-    list_display = ('name', 'phone_number', 'expire_date', 'status', 'price', 'giga', 'creator')
-    # UPDATED: Replaced 'is_paid' with 'status'
-    list_filter = ('status', 'expire_date', 'creator')
-    search_fields = ('name', 'phone_number', 'referrer')
-    list_per_page = 25
 
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):

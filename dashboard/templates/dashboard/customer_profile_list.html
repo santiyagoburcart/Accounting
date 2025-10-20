@@ -1,0 +1,117 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Customers" %}{% endblock %}
+{% block page_title %}{% trans "Customers" %}{% endblock %}
+{% block page_title_desktop %}{% trans "Customer Management" %}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-1">
+        <div class="glass-card p-8">
+            <h2 class="text-2xl font-bold mb-4">{% trans "Add New Customer" %}</h2>
+            <form method="post" class="space-y-4 form-container">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="w-full btn btn-gradient mt-4">{% trans "Add Customer" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="lg:col-span-2">
+        <div class="glass-card p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">{% trans "Customer List" %}</h2>
+                <span class="font-semibold text-[var(--text-secondary)]">{{ customer_count }} {% trans "Customers" %}</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-start">
+                    <thead>
+                        <tr class="border-b border-[var(--border-color)]">
+                            <th class="p-3 text-start">{% trans "Full Name" %}</th>
+                            <th class="p-3 text-start">{% trans "Phone Number" %}</th>
+                            <th class="p-3 text-center">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr class="border-b border-[var(--border-color)] transition-colors duration-200">
+                            <td class="p-3 font-semibold">{{ customer.name }}</td>
+                            <td class="p-3">{{ customer.phone_number|default:"-" }}</td>
+                            <td class="p-3 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{% url 'dashboard:edit_customer_profile' customer.id %}" class="font-semibold text-[var(--accent)] hover:underline">{% trans "Edit" %}</a>
+                                    <span class="text-[var(--text-secondary)]">|</span>
+                                    <button type="button"
+                                            data-url="{% url 'dashboard:delete_customer_profile' customer.id %}"
+                                            data-name="{{ customer.name }}"
+                                            onclick="openDeleteModal(this.dataset.url, this.dataset.name)"
+                                            class="font-semibold text-danger hover:underline">
+                                        {% trans "Delete" %}
+                                    </button>
+                                    </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="p-6 text-center text-[var(--text-secondary)]">{% trans "No customers found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card p-8 rounded-lg shadow-xl w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4">{% trans "Confirm Deletion" %}</h2>
+        <p class="mb-6">{% blocktrans %}Are you sure you want to delete the customer <strong id="customerName"></strong>? All subscriptions related to this customer will also be deleted.{% endblocktrans %}</p>
+        <form id="deleteForm" method="post">
+            {% csrf_token %}
+            <div class="flex justify-end gap-4">
+                <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-danger">{% trans "Yes, Delete" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    $('#id_referred_by').select2({ theme: "classic", placeholder: "{% trans 'Select a referrer...' %}", allowClear: true });
+});
+
+// ===================================================================
+// START: منطق پاپ آپ حذف (اصلاح شده)
+// ===================================================================
+const deleteModal = document.getElementById('deleteModal');
+const deleteForm = document.getElementById('deleteForm');
+const customerNameSpan = document.getElementById('customerName');
+
+// START: CHANGE - تابع openDeleteModal اصلاح شد
+function openDeleteModal(url, customerName) {
+    deleteForm.action = url;
+    customerNameSpan.textContent = customerName;
+    deleteModal.classList.remove('hidden');
+}
+// END: CHANGE
+
+function closeDeleteModal() {
+    deleteModal.classList.add('hidden');
+}
+
+// بستن مودال با کلیک بیرون از آن
+window.onclick = function(event) {
+    if (event.target == deleteModal) {
+        closeDeleteModal();
+    }
+}
+// ===================================================================
+// END: منطق پاپ آپ حذف
+// ===================================================================
+</script>
+{% endblock %}
