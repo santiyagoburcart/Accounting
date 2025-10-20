@@ -19,15 +19,17 @@
                 <i data-feather="plus-circle" class="text-green-400"></i>
                 <span>{% trans "Add Income (Server & Support)" %}</span>
             </h2>
-            <form method="post" class="space-y-4 form-container text-start">
+            <form method="post" class="space-y-6 form-container text-start">
                 {% csrf_token %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">{{ other_income_form.name.label_tag }}{{ other_income_form.name }}</div>
+                <div>{{ other_income_form.name.label_tag }}{{ other_income_form.name }}</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>{{ other_income_form.price.label_tag }}{{ other_income_form.price }}</div>
                     <div>{{ other_income_form.deposit_date.label_tag }}{{ other_income_form.deposit_date }}</div>
                 </div>
                 <div>{{ other_income_form.description.label_tag }}{{ other_income_form.description }}</div>
-                <button type="submit" name="add_other_income" class="w-full btn btn-gradient mt-4">{% trans "Add Income" %}</button>
+                <div class="pt-2">
+                    <button type="submit" name="add_other_income" class="w-full btn btn-gradient">{% trans "Add Income" %}</button>
+                </div>
             </form>
         </div>
 
@@ -36,10 +38,10 @@
                 <i data-feather="minus-circle" class="text-red-400"></i>
                 <span>{% trans "Add Daily Expense" %}</span>
             </h2>
-            <form method="post" class="space-y-4 form-container text-start">
+            <form method="post" class="space-y-6 form-container text-start">
                 {% csrf_token %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="md:col-span-2">{{ expense_form.issue.label_tag }}{{ expense_form.issue }}</div>
+                <div>{{ expense_form.issue.label_tag }}{{ expense_form.issue }}</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>{{ expense_form.price.label_tag }}{{ expense_form.price }}</div>
                     <div>{{ expense_form.spending_date.label_tag }}{{ expense_form.spending_date }}</div>
                 </div>
@@ -51,7 +53,9 @@
                         <span class="font-medium text-[var(--text-secondary)]">{{ expense_form.is_server_cost.label }}</span>
                     </label>
                 </div>
-                <button type="submit" name="add_expense" class="w-full btn btn-gradient mt-4">{% trans "Add Expense" %}</button>
+                <div class="pt-4">
+                    <button type="submit" name="add_expense" class="w-full btn btn-gradient">{% trans "Add Expense" %}</button>
+                </div>
             </form>
         </div>
     </div>
