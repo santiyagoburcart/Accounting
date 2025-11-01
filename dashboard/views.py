@@ -6,7 +6,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
 from django.utils.translation import gettext as _
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from .forms import (
     UserProfileForm, CustomPasswordChangeForm, ExpenseForm,
     OtherIncomeForm, ProfileUpdateForm, SubscriptionForm, CustomerProfileForm,
@@ -550,12 +550,41 @@ def set_theme_view(request):
     return JsonResponse({'status': 'error'}, status=400)
 
 
+def _get_transaction_redirect_url(request):
+    """
+    یک هلپر برای ساخت URL بازگشت به صفحه تراکنش‌ها
+    همراه با حفظ فیلترهای ماه و سال.
+    """
+    redirect_url = reverse('dashboard:add_transaction')
+
+    # اولویت با پارامترهای GET یا POST است
+    year = request.POST.get('year', request.GET.get('year'))
+    month = request.POST.get('month', request.GET.get('month'))
+
+    if year and month:
+        redirect_url += f"?year={year}&month={month}"
+
+    # اگر هیچکدام نبود، سعی کن از 'next' استفاده کنی
+    elif 'next' in request.POST or 'next' in request.GET:
+        redirect_url = request.POST.get('next', request.GET.get('next'))
+        # اگر 'next' پارامترهای فیلتر را داشت، همان را برمی‌گرداند
+
+    return redirect_url
+
+
 @login_required
 @require_POST
 def delete_expense(request, pk):
     expense = get_object_or_404(Expense, id=pk, creator=request.user)
     expense.delete()
     messages.success(request, _("Expense deleted successfully."))
+    #return redirect('dashboard:financial_report')
+
+    # اول چک می‌کنیم آیا درخواست از صفحه add_transaction آمده (با فیلتر)
+    if request.POST.get('year') and request.POST.get('month'):
+        return redirect(_get_transaction_redirect_url(request))
+
+    # اگر نه، به رفتار قبلی (صفحه ریپورت) بازمی‌گردد
     return redirect('dashboard:financial_report')
 
 
@@ -565,7 +594,64 @@ def delete_other_income(request, pk):
     income = get_object_or_404(OtherIncome, id=pk, creator=request.user)
     income.delete()
     messages.success(request, _("Income deleted successfully."))
+    #return redirect('dashboard:financial_report')
+
+    # **تغییر اصلی**: به جای ریدایرکت ثابت، از هلپر استفاده می‌کنیم
+    # return redirect('dashboard:financial_report') # <-- این خط حذف می‌شود
+
+    # اول چک می‌کنیم آیا درخواست از صفحه add_transaction آمده (با فیلتر)
+    if request.POST.get('year') and request.POST.get('month'):
+        return redirect(_get_transaction_redirect_url(request))
+
+    # اگر نه، به رفتار قبلی (صفحه ریپورت) بازمی‌گردد
     return redirect('dashboard:financial_report')
+
+
+
+
+@login_required
+def expense_edit_view(request, pk):
+    """ویو برای ویرایش یک هزینه"""
+    expense = get_object_or_404(Expense, id=pk, creator=request.user)
+    # URL بازگشت را با فیلترها می‌سازیم
+    redirect_url = _get_transaction_redirect_url(request)
+
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Expense updated successfully."))
+            return redirect(redirect_url)
+    else:
+        form = ExpenseForm(instance=expense)
+
+    return render(request, 'dashboard/expense_edit_form.html', {
+        'form': form,
+        'expense': expense,
+        'redirect_url': redirect_url # برای دکمه "انصراف"
+    })
+
+@login_required
+def other_income_edit_view(request, pk):
+    """ویو برای ویرایش یک درآمد (سایر)"""
+    income = get_object_or_404(OtherIncome, id=pk, creator=request.user)
+    # URL بازگشت را با فیلترها می‌سازیم
+    redirect_url = _get_transaction_redirect_url(request)
+
+    if request.method == 'POST':
+        form = OtherIncomeForm(request.POST, instance=income)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Income updated successfully."))
+            return redirect(redirect_url)
+    else:
+        form = OtherIncomeForm(instance=income)
+
+    return render(request, 'dashboard/other_income_edit_form.html', {
+        'form': form,
+        'income': income,
+        'redirect_url': redirect_url # برای دکمه "انصراف"
+    })
 
 
 def custom_404(request, exception):

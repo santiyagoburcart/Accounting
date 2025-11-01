@@ -12,14 +12,15 @@
         <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Total GB's Sold" %}</h3>
         <p class="text-3xl font-bold mt-2">{{ total_giga_sold }} <span class="text-lg">GB</span></p>
     </div>
-    <div class="glass-card p-6 flex items-center justify-between">
+    <div class="glass-card p-6 grid grid-cols-[1fr,auto] items-center gap-4">
         <div>
             <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Total Paid Revenue" %}</h3>
             <p class="text-3xl font-bold text-success mt-2">{{ paid_amount|floatformat:0 }}</p>
         </div>
         <div id="paid-chart"></div>
     </div>
-    <div class="glass-card p-6 flex items-center justify-between">
+
+    <div class="glass-card p-6 grid grid-cols-[1fr,auto] items-center gap-4">
         <div>
             <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Total Unpaid" %}</h3>
             <p class="text-3xl font-bold text-danger mt-2">{{ unpaid_amount|floatformat:0 }}</p>

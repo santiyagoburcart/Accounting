@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-a%m^f0-if0sb)e1*+4tnugku@sual*e84alfhn*rk9yz_%13@8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['5.255.115.148', 'hunaex.shop']
+ALLOWED_HOSTS = ['5.255.115.148', 'hunaex.shop' ]
 
 
 # Application definition

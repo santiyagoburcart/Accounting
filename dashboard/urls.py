@@ -17,13 +17,16 @@ from .views import (
     subscription_edit_view,
     subscription_delete_view,
     add_transaction_view, # <-- ایمپورت جدید
+    expense_edit_view,
+    other_income_edit_view,
 )
 
 app_name = 'dashboard'
 
 urlpatterns = [
-    # ** مسیر جدید برای صفحه ورود تراکنش **
+
     path('transactions/add/', add_transaction_view, name='add_transaction'),
+
 
     # URLs for Subscriptions
     path('subscriptions/', subscription_dashboard_view, name='subscription_dashboard'),
@@ -46,4 +49,8 @@ urlpatterns = [
     path('set-theme/', set_theme_view, name='set_theme'),
     path('expense/<int:pk>/delete/', delete_expense, name='delete_expense'),
     path('income/<int:pk>/delete/', delete_other_income, name='delete_other_income'),
+
+    path('expense/<int:pk>/edit/', expense_edit_view, name='expense_edit'), # <-- جدید
+    path('income/<int:pk>/edit/', other_income_edit_view, name='other_income_edit'), # <-- جدید
+
 ]
