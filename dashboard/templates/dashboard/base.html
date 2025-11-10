@@ -157,9 +157,37 @@
         });
 
         // توابع مربوط به مودال حذف (بدون تغییر)
-        function openDeleteModal(formAction, itemName) {
-            // ...
+
+        function openDeleteModal(url, message, triggerForm) {
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            var modalForm = document.getElementById('deleteModalForm');
+
+            // 1. تنظیم URL و پیام
+            modalForm.action = url;
+            document.getElementById('deleteModalMessage').innerText = message;
+
+            // 2. پاک کردن فیلدهای مخفی قبلی
+            var extraFieldsContainer = document.getElementById('deleteModalExtraFields');
+            extraFieldsContainer.innerHTML = '';
+
+            // 3. (مهم) کپی کردن فیلدهای مخفی از فرم اصلی به مودال
+            if (triggerForm) {
+                var hiddenInputs = triggerForm.querySelectorAll('input[type="hidden"]');
+                hiddenInputs.forEach(function(input) {
+                    // ما از کپی کردن توکن CSRF خود فرم صرف نظر می کنیم
+                    // چون فرم مودال خودش توکن دارد
+                        if (input.name !== 'csrfmiddlewaretoken') {
+                            var clonedInput = input.cloneNode(true);
+                            extraFieldsContainer.appendChild(clonedInput);
+                        }
+                });
         }
+
+        // 4. نمایش مودال
+        deleteModal.show();
+    }
+
+
         function closeDeleteModal() {
             // ...
         }
