@@ -1,0 +1,403 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load custom_filters %}
+
+{% block title %}Subscriptions Management{% endblock %}
+{% block page_title %}Subscriptions{% endblock %}
+{% block page_title_desktop %}Subscriptions Dashboard{% endblock %}
+
+{% block content %}
+
+{# START: بخش ۳ کارت بالا (طراحی جدید Tailwind) #}
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:gap-7.5">
+    {# کارت ۱ #}
+    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-md">
+        <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total GB's Sold</h3>
+        <p class="text-3xl font-bold mt-2 text-gray-900 dark:text-white">{{ total_giga_sold }} <span class="text-lg">GB</span></p>
+    </div>
+    {# کارت ۲ #}
+    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-md">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total Paid Revenue</h3>
+                <p class="text-3xl font-bold text-emerald-500 mt-2">{{ paid_amount|floatformat:0 }}</p>
+            </div>
+            <div id="paid-chart" class="mt-[-10px]"></div>
+        </div>
+    </div>
+    {# کارت ۳ #}
+    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-md">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total Unpaid</h3>
+                <p class="text-3xl font-bold text-red-500 mt-2">{{ unpaid_amount|floatformat:0 }}</p>
+            </div>
+            <div id="unpaid-chart" class="mt-[-10px]"></div>
+        </div>
+    </div>
+</div>
+{# END: بخش کارت‌ها #}
+
+
+{# START: کارت اصلی جدول و فیلترها (طراحی مجدد بر اساس عکس) #}
+<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-md mt-6">
+
+    <form method="get">
+        {# بخش هدر کارت: شامل جستجو و دکمه افزودن #}
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+
+            {# بخش جستجو #}
+            <div class="relative w-full md:w-1/3 lg:w-1/4">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                    <i data-feather="search" class="w-5 h-5 text-gray-400"></i>
+                </span>
+                <input type="search" name="q" value="{{ search_query }}" placeholder="Search by customer or referrer..."
+                       class="w-full pl-10 pr-4 py-2 form-input bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            {# دکمه افزودن مودال #}
+            <div class="w-full md:w-auto">
+                <button type="button" id="openAddModalBtn"
+                        class="w-full md:w-auto flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    <i data-feather="plus" class="inline-block w-5 h-5 mr-1"></i>
+                    Add New Subscription
+                </button>
+            </div>
+        </div>
+
+        {# بخش فیلترهای میانی: شامل تب‌ها و تاریخ #}
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 py-4">
+
+            {# تب‌های وضعیت پرداخت #}
+            <div class="flex items-center gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+                <a href="?status=all&year={{ selected_year }}&month={{ selected_month }}&q={{ search_query }}"
+                   class="px-3 py-1 rounded-md text-sm font-medium {% if status_filter == 'all' %}bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 shadow-sm{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">
+                    All Users
+                </a>
+                <a href="?status=paid&year={{ selected_year }}&month={{ selected_month }}&q={{ search_query }}"
+                   class="px-3 py-1 rounded-md text-sm font-medium {% if status_filter == 'paid' %}bg-white dark:bg-gray-900 text-emerald-600 dark:text-emerald-400 shadow-sm{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">
+                    Paid
+                </a>
+                <a href="?status=unpaid&year={{ selected_year }}&month={{ selected_month }}&q={{ search_query }}"
+                   class="px-3 py-1 rounded-md text-sm font-medium {% if status_filter == 'unpaid' %}bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-sm{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">
+                    Unpaid
+                </a>
+            </div>
+
+            {# فیلترهای تاریخ (سال و ماه) #}
+            <div class="flex items-center gap-2">
+                <select name="month" class="w-auto" onchange="this.form.submit()">
+                    {% for month_num, month_name in months.items %}
+                        <option value="{{ month_num }}" {% if month_num == selected_month %}selected{% endif %}>{{ month_name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="year" class="w-auto" onchange="this.form.submit()">
+                    {% for year in years %}
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="hidden">Filter</button>
+            </div>
+        </div>
+    </form>
+
+    {# بخش جدول #}
+    <div class="overflow-x-auto">
+        <table class="w-full text-start min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Customer</th>
+                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Referrer</th>
+                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Price</th>
+                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">GB</th>
+                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Payment Date</th>
+                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Expiration Date (G)</th>
+                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                    <th class="p-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {% for sub in subscriptions %}
+                    <tr class="transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td class="p-3 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{{ sub.customer.name }}</td>
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.referrer.name|default:"-" }}</td>
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.price|floatformat:0 }}</td>
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.giga }}</td>
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.jalali_payment_date }}</td>
+                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.expire_date|date:"Y/m/d"|default:"Not Set" }}</td>
+                        <td class="p-3 whitespace-nowrap text-sm">
+                            {% if sub.status == 'success' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200">
+                                    Paid
+                                </span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200">
+                                    Unpaid
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3 whitespace-nowrap text-sm text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{% url 'dashboard:subscription_edit' sub.id %}" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+                                <span class="text-gray-300 dark:text-gray-600">|</span>
+                                <button type="button"
+                                        data-url="{% url 'dashboard:subscription_delete' sub.id %}"
+                                        data-name="{{ sub.customer.name }}"
+                                        onclick="openDeleteModal(this)"
+                                        class="font-medium text-red-600 dark:text-red-500 hover:underline">
+                                    Delete
+                                </button>
+                                </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="p-6 text-center text-gray-500 dark:text-gray-400">No subscriptions found for this period.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{# END: کارت اصلی جدول #}
+
+
+{# START: مودال افزودن اشتراک (طراحی جدید Tailwind) #}
+<div id="addSubscriptionModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add New Subscription</h2>
+            <button type="button" id="closeAddModalBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <i data-feather="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <form method="post" action="{% url 'dashboard:subscription_dashboard' %}?year={{ selected_year }}&month={{ selected_month }}" class="form-container">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-300" role="alert">
+                    <p class="font-bold mb-2">Please correct the errors below:</p>
+                    {{ form.non_field_errors }}
+                    <ul class="list-disc list-inside">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+
+                <div class="md:col-span-2">
+                    <label for="id_customer" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer</label>
+                    {{ form.customer }} {# Select2 استایل می‌گیرد #}
+                </div>
+
+                <div>
+                    <label for="id_year" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Year (Shamsi)</label>
+                    {{ form.year }} {# Select2 استایل می‌گیرد #}
+                </div>
+
+                <div>
+                    <label for="id_month" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Month (Shamsi)</label>
+                    {{ form.month }} {# Select2 استایل می‌گیرد #}
+                </div>
+
+                <div>
+                    <label for="id_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price</label>
+                    <input type="{{ form.price.field.widget.input_type }}" name="{{ form.price.name }}" id="id_price" value="{{ form.price.value|default_if_none:'' }}"
+                           class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label for="id_giga" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Giga</label>
+                    <input type="{{ form.giga.field.widget.input_type }}" name="{{ form.giga.name }}" id="id_giga" value="{{ form.giga.value|default_if_none:'' }}"
+                           class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <div class="flex items-center pt-5">
+                    <label class="form-switch">
+                        <input type="hidden" name="status" value="pending">
+                        <input type="checkbox" id="id_status" name="status" value="success" {% if form.status.value == 'success' or not form.is_bound %}checked{% endif %}>
+                        <span class="switch-slider"></span>
+                    </label>
+                    <label for="id_status" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">Paid Status</label>
+                </div>
+
+                <div>
+                    <label for="id_payment_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Date (Shamsi)</label>
+                    <input type="text" name="{{ form.payment_date.name }}" id="id_payment_date" value="{{ form.payment_date.value|default_if_none:'' }}" autocomplete="off"
+                           class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500 jalali-datepicker">
+                </div>
+
+                <div>
+                    <label for="id_expire_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Expiration Date (Gregorian)</label>
+                    <input type="date" name="{{ form.expire_date.name }}" id="id_expire_date" value="{{ form.expire_date.value|default_if_none:''|date:'Y-m-d' }}"
+                           class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label for="id_referrer" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Service Referrer</label>
+                    {{ form.referrer }} {# Select2 استایل می‌گیرد #}
+                </div>
+
+                <div>
+                    <label for="id_destination_bank" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Destination Bank</label>
+                    {{ form.destination_bank }} {# Select2 استایل می‌گیرد #}
+                </div>
+
+            </div>
+
+            <button type="submit" name="add_subscription"
+                    class="w-full mt-6 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-md shadow-sm hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                Add Subscription
+            </button>
+        </form>
+    </div>
+</div>
+{# END: مودال افزودن اشتراک #}
+
+
+{# START: مودال حذف (طراحی جدید Tailwind) #}
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Confirm Deletion</h2>
+        <p class="mb-6 text-gray-600 dark:text-gray-300">Are you sure you want to delete the subscription for <strong id="customerName" class="font-bold text-gray-800 dark:text-gray-100"></strong>? This action cannot be undone.</p>
+        <form id="deleteForm" method="post" action=""> {% csrf_token %}
+            <div class="flex justify-end gap-4">
+                <button type="button" onclick="closeDeleteModal()"
+                        class="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium rounded-md shadow-sm hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-red-600 text-white font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                    Yes, Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{# END: مودال حذف #}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    // اعمال Select2 با استایل `classic` (که در style.css بازنویسی کردیم)
+    const select2Options = {
+        theme: "classic",
+        width: '100%',
+    };
+    const select2ModalOptions = {
+        ...select2Options,
+        dropdownParent: $('#addSubscriptionModal')
+    };
+
+    // فیلترهای بالای صفحه (داخل فرم)
+    $('select[name="month"]').select2(select2Options);
+    $('select[name="year"]').select2(select2Options);
+
+    // فیلدهای داخل مودال
+    $('#id_customer').select2({ ...select2ModalOptions, placeholder: "Select a customer..." });
+    $('#id_referrer').select2({ ...select2ModalOptions, placeholder: "Select a referrer...", allowClear: true });
+    $('#id_destination_bank').select2({ ...select2ModalOptions, placeholder: "Select a bank account...", allowClear: true });
+    $('#id_year').select2(select2ModalOptions);
+    $('#id_month').select2(select2ModalOptions);
+
+    // --- چارت‌ها ---
+    const totalAmount = {{ total_amount|default:0 }};
+    const paidAmount = {{ paid_amount|default:0 }};
+    const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    const paidPercentage = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
+    const unpaidPercentage = 100 - paidPercentage;
+
+    const chartOptions = {
+        chart: { type: 'radialBar', height: 120, sparkline: { enabled: true } },
+        plotOptions: {
+            radialBar: {
+                hollow: { size: '60%' },
+                track: { background: theme === 'dark' ? '#374151' : '#E5E7EB' },
+                dataLabels: {
+                    show: true, name: { show: false },
+                    value: {
+                        show: true,
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        offsetY: 8,
+                        formatter: (val) => val + '%',
+                        color: theme === 'dark' ? '#FFFFFF' : '#111827'
+                    }
+                }
+            }
+        },
+        stroke: { lineCap: 'round' },
+        theme: { mode: theme }
+    };
+
+    if (document.querySelector("#paid-chart")) {
+        var paidChart = new ApexCharts(document.querySelector("#paid-chart"), {...chartOptions, series: [paidPercentage], colors: ['#10B981']});
+        paidChart.render();
+    }
+    if (document.querySelector("#unpaid-chart")) {
+        var unpaidChart = new ApexCharts(document.querySelector("#unpaid-chart"), {...chartOptions, series: [unpaidPercentage], colors: ['#EF4444']});
+        unpaidChart.render();
+    }
+
+    // فعال‌سازی آیکون‌ها
+    feather.replace();
+});
+
+// --- جاوااسکریپت مودال افزودن ---
+const addModal = document.getElementById('addSubscriptionModal');
+const openAddModalBtn = document.getElementById('openAddModalBtn');
+const closeAddModalBtn = document.getElementById('closeAddModalBtn');
+
+if (openAddModalBtn) {
+    openAddModalBtn.onclick = function() {
+        addModal.classList.remove('hidden');
+        // فعال‌سازی تقویم شمسی *بعد از* باز شدن مودال
+        // ما از تابع گلوبالی که در base.html تعریف کردیم استفاده می‌کنیم
+        window.initPersianDatepicker("#addSubscriptionModal .jalali-datepicker");
+    }
+}
+if (closeAddModalBtn) {
+    closeAddModalBtn.onclick = function() { addModal.classList.add('hidden'); }
+}
+
+// --- جاوااسکریپت مودال حذف ---
+const deleteModal = document.getElementById('deleteModal');
+const deleteForm = document.getElementById('deleteForm');
+const customerNameSpan = document.getElementById('customerName');
+
+function openDeleteModal(button) {
+    const url = button.dataset.url;
+    const name = button.dataset.name;
+    deleteForm.action = url;
+    customerNameSpan.textContent = name;
+    deleteModal.classList.remove('hidden');
+}
+function closeDeleteModal() {
+    deleteModal.classList.add('hidden');
+}
+
+// --- بستن مودال‌ها با کلیک بیرونی ---
+window.addEventListener('click', function(event) {
+    if (event.target == addModal) { addModal.classList.add('hidden'); }
+    if (event.target == deleteModal) { closeDeleteModal(); }
+});
+
+// --- باز نگه داشتن مودال در صورت خطا ---
+{% if form.errors %}
+    addModal.classList.remove('hidden');
+    $(document).ready(function() {
+        // فعال‌سازی مجدد تقویم در صورت خطا
+        window.initPersianDatepicker("#addSubscriptionModal .jalali-datepicker");
+    });
+{% endif %}
+</script>
+{% endblock %}

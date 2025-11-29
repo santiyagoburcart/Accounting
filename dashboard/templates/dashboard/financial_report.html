@@ -1,0 +1,277 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load mathfilters %}
+{% load custom_filters %} {# اضافه کردن فیلتر سفارشی برای نام کلاس #}
+
+{% block title %}{% trans "Financial Report" %}{% endblock %}
+{% block page_title %}{% trans "Financial Dashboard" %}{% endblock %}
+
+{% block extra_head %}
+    {# **تغییر**: لینک‌های فرم از اینجا حذف شدند #}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-card p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Total Income" %}</h3>
+                        <p class="text-3xl font-bold text-success">{{ total_income|floatformat:0 }}</p>
+                    </div>
+                    <div class="radial-progress" style="--value:100; --size:5rem; --thickness: 0.5rem; color: var(--accent-green);">
+                        <span>100%</span>
+                    </div>
+                </div>
+                <div class="glass-card p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Total Expenses" %}</h3>
+                        <p class="text-3xl font-bold text-danger">{{ total_expenses|floatformat:0 }}</p>
+                    </div>
+                    {% if total_income > 0 %}
+                    <div class="radial-progress" style="--value:{% widthratio total_expenses total_income 100 %}; --size:5rem; --thickness: 0.5rem; color: var(--accent-red);">
+                        <span>{% widthratio total_expenses total_income 100 %}%</span>
+                    </div>
+                    {% else %}
+                    <div class="radial-progress" style="--value:0; --size:5rem; --thickness: 0.5rem; color: var(--accent-red);">
+                        <span>0%</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="glass-card p-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg text-[var(--text-secondary)]">{% trans "Net Profit" %}</h3>
+                        <p class="text-3xl font-bold {% if net_profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ net_profit|floatformat:0 }}</p>
+                    </div>
+                    {% if total_income > 0 and net_profit > 0 %}
+                    <div class="radial-progress" style="--value:{% widthratio net_profit total_income 100 %}; --size:5rem; --thickness: 0.5rem; color: var(--accent-blue);">
+                        <span>{% widthratio net_profit total_income 100 %}%</span>
+                    </div>
+                     {% else %}
+                    <div class="radial-progress" style="--value:0; --size:5rem; --thickness: 0.5rem; color: var(--accent-blue);">
+                        <span>0%</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="glass-card p-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                    <h3 class="text-xl font-bold text-start">{% trans "Activity Chart" %}</h3>
+                    <div class="filter-btn-group">
+                        <a href="?timeframe=daily&year={{ selected_year }}&month={{ selected_month|default_if_none:'' }}" class="filter-btn {% if current_timeframe == 'daily' and selected_month %}active{% elif not selected_month %}disabled{% endif %}">{% trans "Daily" %}</a>
+                        <a href="?timeframe=monthly&year={{ selected_year }}" class="filter-btn {% if current_timeframe == 'monthly' %}active{% endif %}">{% trans "Monthly" %}</a>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold text-start">{% trans "Today's Income" %}</h3>
+                    <p class="text-2xl text-success text-start">{{ total_today_income|floatformat:0 }}</p>
+                </div>
+                 <div class="glass-card p-6">
+                    <h3 class="text-lg font-bold text-start">{% trans "Today's Expenses" %}</h3>
+                    <p class="text-2xl text-danger text-start">{{ total_today_expenses|floatformat:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 space-y-6">
+             <div class="glass-card p-6">
+                {# **تغییر**: عنوان به Filters تغییر کرد #}
+                <h3 class="text-xl font-bold mb-4 text-start">{% trans "Filters" %}</h3>
+                <form method="get" id="filter-form" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="year-select" class="form-label">{% trans "Year" %}</label>
+                            <select name="year" id="year-select" class="form-input w-full mt-2">
+                                {% for year in years %}
+                                    <option value="{{ year }}" {% if selected_year == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="month-select" class="form-label">{% trans "Month" %}</label>
+                            <select name="month" id="month-select" class="form-input w-full mt-2">
+                                <option value="">{% trans "All Year" %}</option>
+                                {% for month_num, month_name in months.items %}
+                                    <option value="{{ month_num }}" {% if selected_month == month_num|stringformat:"s" %}selected{% endif %}>{{ month_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                     <input type="hidden" name="timeframe" value="{{ current_timeframe }}">
+                     <button type="submit" class="w-full btn btn-gradient mt-2">{% trans "Apply Filter" %}</button>
+                </form>
+                {# **تغییر**: بخش Quick Transaction از اینجا حذف شد #}
+            </div>
+            <div class="glass-card p-6">
+                <h3 class="text-xl font-bold mb-4 text-start">{% trans "Recent Activities" %}</h3>
+                <ul class="space-y-4">
+                    {% for activity in recent_activities %}
+                        <li class="flex items-center gap-3">
+                            <div class="p-2 rounded-full bg-[var(--bg-secondary)]">
+                                {% if activity|class_name == 'CustomerProfile' %}
+                                    <i data-feather="user-plus" class="text-green-400"></i>
+                                {% elif activity|class_name == 'Subscription' %}
+                                    <i data-feather="check-circle" class="text-cyan-400"></i>
+                                {% elif activity|class_name == 'Expense' %}
+                                    <i data-feather="arrow-down-circle" class="text-red-400"></i>
+                                {% elif activity|class_name == 'OtherIncome' %}
+                                    <i data-feather="arrow-up-circle" class="text-blue-400"></i>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-start">
+                                    {% if activity|class_name == 'CustomerProfile' %} {% trans "New Customer:" %} {{ activity.name }}
+                                    {% elif activity|class_name == 'Subscription' %} {% trans "Subscription Paid:" %} {{ activity.customer.name }}
+                                    {% elif activity|class_name == 'Expense' %} {% trans "Expense:" %} {{ activity.issue }}
+                                    {% else %} {% trans "Income:" %} {{ activity.name }}
+                                    {% endif %}
+                                </p>
+                                <p class="text-sm text-[var(--text-secondary)] text-start">
+                                    {% if activity.created_at %}{{ activity.created_at|timesince }} {% trans "ago" %}{% endif %}
+                                    {% if activity.payment_date %}{{ activity.jalali_payment_date }}{% endif %}
+                                </p>
+                            </div>
+                            <p class="font-bold {% if activity|class_name == 'Expense' %}text-danger{% else %}text-success{% endif %}">
+                                {% if activity.price %}{{ activity.price|floatformat:0 }}{% else %}---{% endif %}
+                            </p>
+                        </li>
+                    {% empty %}
+                        <p class="text-[var(--text-secondary)] text-center py-4">{% trans "No recent activities." %}</p>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        <div class="glass-card p-8 space-y-6">
+            <h3 class="text-xl font-bold pt-4 text-start">{% trans "Incomes List" %}</h3>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="space-y-2 pr-2">
+                    {% for income in other_incomes %}
+                        <li class="flex justify-between items-center bg-[var(--bg-secondary)]/50 p-3 rounded">
+                            <div>
+                                <span class="font-bold">{{ income.name }}</span>
+                                <span class="text-sm text-[var(--text-secondary)] block">{{ income.jalali_deposit_date }}</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="font-bold text-success">{{ income.price|floatformat:0 }}</span>
+                                <form method="post" action="{% url 'dashboard:delete_other_income' income.id %}" onsubmit="return confirm('{% trans "Are you sure?" %}');">
+                                    {% csrf_token %}
+                                    <button type="submit"><i data-feather="trash-2" class="text-red-500 hover:text-red-400"></i></button>
+                                </form>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="text-[var(--text-secondary)] text-center py-4">{% trans "No income has been recorded." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="glass-card p-8 space-y-6">
+            <h3 class="text-xl font-bold pt-4 text-start">{% trans "Expenses List" %}</h3>
+            <div class="max-h-96 overflow-y-auto">
+                <ul class="space-y-2 pr-2">
+                    {% for expense in expenses %}
+                        <li class="flex justify-between items-center bg-[var(--bg-secondary)]/50 p-3 rounded">
+                            <div>
+                                <span class="font-bold">{{ expense.issue }}</span>
+                                <span class="text-sm text-[var(--text-secondary)] block">{{ expense.jalali_spending_date }}</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="font-bold text-danger">{{ expense.price|floatformat:0 }}</span>
+                                <form method="post" action="{% url 'dashboard:delete_expense' expense.id %}" onsubmit="return confirm('{% trans "Are you sure?" %}');">
+                                    {% csrf_token %}
+                                    <button type="submit"><i data-feather="trash-2" class="text-red-500 hover:text-red-400"></i></button>
+                                </form>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="text-[var(--text-secondary)] text-center py-4">{% trans "No expense has been recorded." %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card p-8 mt-8">
+        <h3 class="text-xl font-bold mb-4 text-start">{% trans "Top Spending Categories" %}</h3>
+        <ul class="space-y-3">
+            {% for expense in top_expenses %}
+                <li class="text-start">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-semibold">{{ expense.issue }} ({{ expense.count }}x)</span>
+                        <span class="text-sm text-[var(--text-secondary)]">{{ expense.total|floatformat:0 }}</span>
+                    </div>
+                    {% if total_expenses > 0 %}
+                    <div class="w-full bg-[var(--bg-secondary)] rounded-full h-2.5">
+                        <div class="bg-purple-600 h-2.5 rounded-full" style="width: {% widthratio expense.total total_expenses 100 %}%"></div>
+                    </div>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <p class="text-[var(--text-secondary)] text-center py-4">{% trans "No expenses to analyze." %}</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+
+    {# **تغییر**: مودال‌ها از اینجا حذف شدند #}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chart Logic (بدون تغییر)
+        const ctx = document.getElementById('activityChart');
+        if (ctx) {
+            new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: {{ chart_labels|safe }},
+                    datasets: [
+                        {
+                            label: '{% trans "Income" %}',
+                            data: {{ income_data|safe }},
+                            borderColor: 'var(--accent-green)',
+                            backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                        },
+                        {
+                            label: '{% trans "Expenses" %}',
+                            data: {{ expense_data|safe }},
+                            borderColor: 'var(--accent-red)',
+                            backgroundColor: 'rgba(247, 118, 142, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: 'var(--text-primary)' }, grid: { color: 'var(--border-color)' } },
+                        x: { ticks: { color: 'var(--text-primary)' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { labels: { color: 'var(--text-primary)' } } }
+                }
+            });
+        }
+
+        // **تغییر**: اسکریپت مودال از اینجا حذف شد
+
+    });
+</script>
+{% endblock %}

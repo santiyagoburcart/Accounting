@@ -1,0 +1,25 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Import & Export" %}{% endblock %}
+{% block page_title %}{% trans "Import & Export Data" %}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="glass-card p-8">
+        <div class="page-header"><h2 class="page-title">{% trans "Import from CSV" %}</h2></div>
+        <p class="text-[var(--text-secondary)] mb-4">{% trans "Upload a CSV file with customer data to import or update records." %}</p>
+        <form method="post" enctype="multipart/form-data" class="form-container">
+            {% csrf_token %}
+            <input type="file" name="csv_file" class="form-input" required>
+            <button type="submit" class="btn btn-gradient w-full mt-4">{% trans "Import Data" %}</button>
+        </form>
+    </div>
+
+    <div class="glass-card p-8">
+        <div class="page-header"><h2 class="page-title">{% trans "Export to CSV" %}</h2></div>
+        <p class="text-[var(--text-secondary)] mb-4">{% trans "Download all your customer data as a CSV file." %}</p>
+        <a href="{% url 'export_customers_csv' %}" class="btn btn-secondary w-full">{% trans "Export Data" %}</a>
+    </div>
+</div>
+{% endblock %}

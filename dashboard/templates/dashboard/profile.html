@@ -1,0 +1,166 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "My Profile" %}{% endblock %}
+{% block page_title %}{% trans "My Profile" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* استایل‌های سفارشی برای بخش آپلود فایل */
+    .file-upload-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%; /* برای تمام عرض در دسترس باشد */
+        border: 2px dashed var(--border-color);
+        border-radius: 0.75rem;
+        transition: border-color 0.3s;
+        cursor: pointer;
+    }
+    .file-upload-wrapper:hover {
+        border-color: var(--accent-blue);
+    }
+    /* کلاس file-input از Django form به input واقعی اعمال می‌شود */
+    .file-upload-wrapper input[type="file"] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+
+    <div class="glass-card p-6 md:p-8 flex flex-col sm:flex-row items-center gap-6">
+        <div class="relative">
+            <img id="avatar-preview-main" src="{{ user.profile.avatar.url }}" alt="Avatar" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-[var(--accent-blue)]">
+        </div>
+        <div class="text-center sm:text-start">
+            <h2 class="text-3xl font-bold">{{ user.first_name }} {{ user.last_name }}</h2>
+            <p class="text-lg text-[var(--text-secondary)]">@{{ user.username }}</p>
+            <p class="text-[var(--text-secondary)] mt-1">{{ user.email }}</p>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="border-b border-[var(--border-color)]">
+            <nav id="profile-tabs" class="flex space-x-1 sm:space-x-4 p-2" aria-label="Tabs">
+                <button data-tab="details" class="profile-tab active">
+                    <i data-feather="edit-3" class="mr-2"></i> {% trans "Edit Details" %}
+                </button>
+                <button data-tab="password" class="profile-tab">
+                    <i data-feather="lock" class="mr-2"></i> {% trans "Change Password" %}
+                </button>
+                <button data-tab="avatar" class="profile-tab">
+                    <i data-feather="image" class="mr-2"></i> {% trans "Update Avatar" %}
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-6 md:p-8">
+            <div id="tab-details" class="tab-content active">
+                <form method="post" class="space-y-6 form-container text-start">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>{{ user_form.username.label_tag }}{{ user_form.username }}</div>
+                        <div>{{ user_form.email.label_tag }}{{ user_form.email }}</div>
+                        <div>{{ user_form.first_name.label_tag }}{{ user_form.first_name }}</div>
+                        <div>{{ user_form.last_name.label_tag }}{{ user_form.last_name }}</div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" name="change_details" class="btn btn-gradient">{% trans "Save Changes" %}</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="tab-password" class="tab-content hidden">
+                <form method="post" class="space-y-6 form-container text-start max-w-sm">
+                    {% csrf_token %}
+                    <div>{{ password_form.old_password.label_tag }}{{ password_form.old_password }}</div>
+                    <div>{{ password_form.new_password1.label_tag }}{{ password_form.new_password1 }}</div>
+                    <div>{{ password_form.new_password2.label_tag }}{{ password_form.new_password2 }}</div>
+                    <div class="pt-2">
+                        <button type="submit" name="change_password" class="btn btn-gradient">{% trans "Change Password" %}</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="tab-avatar" class="tab-content hidden">
+                <form method="post" enctype="multipart/form-data" class="space-y-6 form-container text-start">
+                    {% csrf_token %}
+                    <div class="file-upload-wrapper p-8 text-center">
+                        <div class="flex flex-col items-center justify-center space-y-4">
+                            <i data-feather="upload-cloud" class="w-12 h-12 text-[var(--text-secondary)]"></i>
+                            <img id="avatar-preview-form" src="{{ user.profile.avatar.url }}" alt="Avatar Preview" class="w-24 h-24 rounded-full object-cover border-2 border-[var(--border-color)] hidden">
+                            <p class="font-semibold text-lg">{% trans "Click to upload or drag and drop" %}</p>
+                            <p id="file-name-display" class="text-sm text-[var(--text-secondary)]">{% trans "PNG, JPG, SVG up to 2MB." %}</p>
+                            {{ profile_form.avatar }}
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" name="change_avatar" class="btn btn-gradient">{% trans "Upload Avatar" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // منطق تب‌ها (بدون تغییر)
+    const tabs = document.querySelectorAll('.profile-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.add('hidden'));
+            const tabName = tab.dataset.tab;
+            const activeContent = document.getElementById('tab-' + tabName);
+            tab.classList.add('active');
+            if (activeContent) activeContent.classList.remove('hidden');
+        });
+    });
+
+    // منطق پیش‌نمایش آواتار (بهبود یافته)
+    const avatarInput = document.querySelector('input[name="avatar"]');
+    const avatarPreviewMain = document.getElementById('avatar-preview-main');
+    const avatarPreviewForm = document.getElementById('avatar-preview-form');
+    const uploadIcon = document.querySelector('.file-upload-wrapper i[data-feather="upload-cloud"]');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const defaultFileText = fileNameDisplay.textContent;
+
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (avatarPreviewMain) avatarPreviewMain.src = e.target.result;
+                    if (avatarPreviewForm) {
+                        avatarPreviewForm.src = e.target.result;
+                        avatarPreviewForm.classList.remove('hidden');
+                    }
+                    if (uploadIcon) uploadIcon.classList.add('hidden');
+                    if (fileNameDisplay) fileNameDisplay.textContent = file.name;
+                }
+                reader.readAsDataURL(file);
+            } else {
+                // اگر کاربر فایلی انتخاب نکرد، به حالت اولیه برگرد
+                if (avatarPreviewForm) avatarPreviewForm.classList.add('hidden');
+                if (uploadIcon) uploadIcon.classList.remove('hidden');
+                if (fileNameDisplay) fileNameDisplay.textContent = defaultFileText;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
