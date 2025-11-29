@@ -1,0 +1,197 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} | AP Accounting</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css"/>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
+
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body data-theme="{{ request.user.profile.theme|default:'dark' }}" class="bg-[var(--bg-primary)]">
+
+    <div class="flex h-screen">
+        <aside id="sidebar" class="w-64 -translate-x-full md:translate-x-0 fixed md:static inset-y-0 left-0 bg-[var(--bg-secondary)] z-30 transition-transform duration-300 ease-in-out flex flex-col text-[var(--text-primary)]">
+            <div class="p-4 flex items-center justify-center border-b border-[var(--border-color)]">
+                <a href="{% url 'dashboard:subscription_dashboard' %}" class="flex items-center gap-2">
+                    <span class="text-2xl font-bold">AP Accounting</span>
+                </a>
+            </div>
+
+            {# **تغییر**: آیکون‌ها به لینک‌ها اضافه شدند و لینک جدید در اینجا قرار گرفت #}
+            <nav class="p-4 space-y-2 flex-1">
+                <a href="{% url 'dashboard:financial_report' %}" class="nav-link {% if request.resolver_match.url_name == 'financial_report' %}active{% endif %}">
+                    <i data-feather="pie-chart"></i>
+                    <span>{% trans "Financial Report" %}</span>
+                </a>
+                <a href="{% url 'dashboard:subscription_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'subscription_dashboard' %}active{% endif %}">
+                    <i data-feather="trello"></i>
+                    <span>{% trans "Subscriptions" %}</span>
+                </a>
+
+                <a href="{% url 'dashboard:add_transaction' %}" class="nav-link {% if request.resolver_match.url_name == 'add_transaction' %}active{% endif %}">
+                    <i data-feather="plus-circle"></i>
+                    <span>{% trans "Add Transaction" %}</span>
+                </a>
+
+                <a href="{% url 'dashboard:customer_profile_list' %}" class="nav-link {% if request.resolver_match.url_name == 'customer_profile_list' %}active{% endif %}">
+                    <i data-feather="users"></i>
+                    <span>{% trans "Customers" %}</span>
+                </a>
+                <a href="{% url 'dashboard:bank_account_list' %}" class="nav-link {% if request.resolver_match.url_name == 'bank_account_list' %}active{% endif %}">
+                    <i data-feather="briefcase"></i>
+                    <span>{% trans "Bank Accounts" %}</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-[var(--border-color)]">
+                <div class="flex items-center justify-between mb-4">
+                    <span>{% trans "Toggle Theme" %}</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle" {% if request.user.profile.theme == 'light' %}checked{% endif %}>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'dashboard:profile' %}">
+                        <img src="{{ request.user.profile.avatar.url }}" alt="Avatar" class="w-10 h-10 rounded-full">
+                    </a>
+                    <div class="flex-1">
+                        <a href="{% url 'dashboard:profile' %}" class="font-semibold hover:underline">{{ request.user.username }}</a>
+                    </div>
+                    <div>
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="text-sm text-danger hover:underline">{% trans "Logout" %}</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col">
+            <header class="flex-shrink-0 flex justify-between items-center p-4 border-b border-[var(--border-color)] bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-sm">
+                <button id="menu-toggle" class="md:hidden p-2 rounded-md hover:bg-[var(--border-color)]">
+                    <i data-feather="menu"></i>
+                </button>
+                <h1 class="text-xl font-bold hidden md:block">{% block page_title_desktop %}{% endblock %}</h1>
+                <h1 class="text-lg font-bold md:hidden">{% block page_title %}{% endblock %}</h1>
+                <div></div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+                <div class="max-w-7xl mx-auto w-full">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
+    <script>
+        // فعال‌سازی آیکون‌ها
+        feather.replace();
+
+        $(document).ready(function() {
+            // منطق مربوط به تم و سایدبار (بدون تغییر)
+            const themeToggle = document.getElementById('theme-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.getElementById('menu-toggle');
+
+            themeToggle.addEventListener('change', function() {
+                const theme = this.checked ? 'light' : 'dark';
+                document.body.setAttribute('data-theme', theme);
+
+                $.ajax({
+                    url: "{% url 'dashboard:set_theme' %}",
+                    type: "POST",
+                    data: { 'theme': theme, 'csrfmiddlewaretoken': '{{ csrf_token }}' }
+                });
+            });
+
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            }
+
+            // فعال‌سازی تقویم شمسی (بدون تغییر)
+            $(".jalali-datepicker").persianDatepicker({
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                toolbox: { calendarSwitch: { enabled: false } },
+                observer: true,
+                initialValue: false,
+                persianDigit: false
+            });
+
+            // نمایش پیغام‌ها (بدون تغییر)
+            {% if messages %}
+                {% for message in messages %}
+                    Toastify({
+                        text: "{{ message|safe }}",
+                        duration: 4000,
+                        close: true,
+                        gravity: "bottom",
+                        position: "right",
+                        backgroundColor: "{{ message.tags }}" === "success" ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)",
+                        stopOnFocus: true,
+                    }).showToast();
+                {% endfor %}
+            {% endif %}
+        });
+
+        // توابع مربوط به مودال حذف (بدون تغییر)
+
+        function openDeleteModal(url, message, triggerForm) {
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            var modalForm = document.getElementById('deleteModalForm');
+
+            // 1. تنظیم URL و پیام
+            modalForm.action = url;
+            document.getElementById('deleteModalMessage').innerText = message;
+
+            // 2. پاک کردن فیلدهای مخفی قبلی
+            var extraFieldsContainer = document.getElementById('deleteModalExtraFields');
+            extraFieldsContainer.innerHTML = '';
+
+            // 3. (مهم) کپی کردن فیلدهای مخفی از فرم اصلی به مودال
+            if (triggerForm) {
+                var hiddenInputs = triggerForm.querySelectorAll('input[type="hidden"]');
+                hiddenInputs.forEach(function(input) {
+                    // ما از کپی کردن توکن CSRF خود فرم صرف نظر می کنیم
+                    // چون فرم مودال خودش توکن دارد
+                        if (input.name !== 'csrfmiddlewaretoken') {
+                            var clonedInput = input.cloneNode(true);
+                            extraFieldsContainer.appendChild(clonedInput);
+                        }
+                });
+        }
+
+        // 4. نمایش مودال
+        deleteModal.show();
+    }
+
+
+        function closeDeleteModal() {
+            // ...
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

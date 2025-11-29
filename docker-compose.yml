@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: accounting-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: Accounting
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - main_net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: accounting-pma
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      # این باعث می‌شود با همان یوزر/پسوردی که دارید لاگین کنید
+      PMA_ARBITRARY: 1 
+    ports:
+      - "8080:80"  # برای دسترسی اضطراری اگر انجینیکس کار نکرد
+    depends_on:
+      - db
+    networks:
+      - main_net
+
+  web:
+    build: .
+    container_name: accounting-web
+    command: gunicorn Accounting.wsgi:application --bind 0.0.0.0:8000
+    restart: always
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - main_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: accounting-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - /etc/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - web
+      - phpmyadmin
+    networks:
+      - main_net
+
+volumes:
+  db_data:
+  static_volume:
+  media_volume:
+
+networks:
+  main_net:

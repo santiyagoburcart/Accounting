@@ -1,0 +1,35 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Income" %}{% endblock %}
+{% block page_title %}{% trans "Edit Income" %}{% endblock %}
+
+{% block extra_head %}
+    {{ form.media }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-card p-6 md:p-8">
+        <h2 class="text-2xl font-bold mb-6 text-start">
+            {% trans "Editing Income" %}: {{ income.name }}
+        </h2>
+
+        <form method="post" class="space-y-6 form-container text-start">
+            {% csrf_token %}
+
+            <div>{{ form.name.label_tag }}{{ form.name }}</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>{{ form.price.label_tag }}{{ form.price }}</div>
+                <div>{{ form.deposit_date.label_tag }}{{ form.deposit_date }}</div>
+            </div>
+            <div>{{ form.description.label_tag }}{{ form.description }}</div>
+
+            <div class="pt-4 flex flex-col sm:flex-row gap-4">
+                <button type="submit" class="flex-1 btn btn-gradient">{% trans "Save Changes" %}</button>
+                <a href="{{ redirect_url }}" class="flex-1 btn btn-secondary text-center">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Expense" %}{% endblock %}
+{% block page_title %}{% trans "Edit Expense" %}{% endblock %}
+
+{% block extra_head %}
+    {{ form.media }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-card p-6 md:p-8">
+        <h2 class="text-2xl font-bold mb-6 text-start">
+            {% trans "Editing Expense" %}: {{ expense.issue }}
+        </h2>
+
+        <form method="post" class="space-y-6 form-container text-start">
+            {% csrf_token %}
+
+            <div>{{ form.issue.label_tag }}{{ form.issue }}</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>{{ form.price.label_tag }}{{ form.price }}</div>
+                <div>{{ form.spending_date.label_tag }}{{ form.spending_date }}</div>
+            </div>
+            <div>{{ form.description.label_tag }}{{ form.description }}</div>
+            <div class="pt-2">
+                <label class="toggle-wrapper">
+                    {{ form.is_server_cost }}
+                    <div class="toggle-switch"></div>
+                    <span class="font-medium text-[var(--text-secondary)]">{{ form.is_server_cost.label }}</span>
+                </label>
+            </div>
+
+            <div class="pt-4 flex flex-col sm:flex-row gap-4">
+                <button type="submit" class="flex-1 btn btn-gradient">{% trans "Save Changes" %}</button>
+                <a href="{{ redirect_url }}" class="flex-1 btn btn-secondary text-center">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

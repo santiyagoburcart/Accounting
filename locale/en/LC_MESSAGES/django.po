@@ -1,0 +1,521 @@
+# Django-Shop
+# Copyright (C) 2025
+# This file is distributed under the same license as the Django-Shop package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Django-Shop\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-11 04:09+0200\n"
+"PO-Revision-Date: 2025-10-02 12:35+0000\n"
+"Last-Translator: FIRST AUTHOR <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: Accounting/settings.py:118
+msgid "Persian"
+msgstr ""
+
+#: Accounting/settings.py:119
+msgid "English"
+msgstr ""
+
+#: dashboard/forms.py:18 dashboard/models.py:43
+msgid "Payment Date (Shamsi)"
+msgstr "Payment Date (Shamsi)"
+
+#: dashboard/forms.py:20 dashboard/models.py:39
+msgid "Expiration Date (Gregorian)"
+msgstr "Expiration Date (Gregorian)"
+
+#: dashboard/forms.py:36 dashboard/models.py:44
+msgid "Paid Status"
+msgstr "Paid Status"
+
+#: dashboard/forms.py:37 dashboard/models.py:38
+msgid "Full Name"
+msgstr "Full Name"
+
+#: dashboard/forms.py:38 dashboard/models.py:40
+msgid "Price"
+msgstr "Price"
+
+#: dashboard/forms.py:39 dashboard/models.py:41
+msgid "Giga"
+msgstr "Giga"
+
+#: dashboard/forms.py:40 dashboard/models.py:42
+msgid "Phone Number"
+msgstr "Phone Number"
+
+#: dashboard/forms.py:41 dashboard/models.py:45
+msgid "Referrer"
+msgstr "Referrer"
+
+#: dashboard/forms.py:42 dashboard/models.py:46
+msgid "Bank Name"
+msgstr "Bank Name"
+
+#: dashboard/forms.py:48 dashboard/models.py:69
+msgid "Spending Date (Shamsi)"
+msgstr "Spending Date (Shamsi)"
+
+#: dashboard/forms.py:60 dashboard/models.py:70
+msgid "Issue"
+msgstr "Issue"
+
+#: dashboard/forms.py:61 dashboard/forms.py:81 dashboard/models.py:71
+#: dashboard/models.py:95
+msgid "Description"
+msgstr "Description"
+
+#: dashboard/forms.py:62 dashboard/forms.py:82 dashboard/models.py:72
+#: dashboard/models.py:96
+msgid "Amount"
+msgstr ""
+
+#: dashboard/forms.py:63 dashboard/models.py:73
+msgid "Is it a server cost?"
+msgstr "Is it a server cost?"
+
+#: dashboard/forms.py:69 dashboard/models.py:93
+msgid "Deposit Date (Shamsi)"
+msgstr "Deposit Date (Shamsi)"
+
+#: dashboard/forms.py:80 dashboard/models.py:94
+msgid "Depositor Name"
+msgstr "Depositor Name"
+
+#: dashboard/forms.py:96
+msgid "First Name"
+msgstr "First Name"
+
+#: dashboard/forms.py:97
+msgid "Last Name"
+msgstr "Last Name"
+
+#: dashboard/forms.py:98
+msgid "Email"
+msgstr "Email"
+
+#: dashboard/forms.py:118
+msgid "Old password"
+msgstr "Old password"
+
+#: dashboard/forms.py:120
+msgid "New password"
+msgstr "New password"
+
+#: dashboard/forms.py:122
+msgid "New password confirmation"
+msgstr "New password confirmation"
+
+#: dashboard/models.py:37 dashboard/models.py:68 dashboard/models.py:92
+msgid "Creator Admin"
+msgstr "Creator Admin"
+
+#: dashboard/models.py:58
+msgid "Invalid Format"
+msgstr "Invalid Format"
+
+#: dashboard/models.py:59 dashboard/models.py:83 dashboard/models.py:106
+msgid "Not Set"
+msgstr "Not Set"
+
+#: dashboard/models.py:62
+msgid "Customer"
+msgstr "Customer"
+
+#: dashboard/models.py:63 dashboard/templates/dashboard/base.html:35
+msgid "Customers"
+msgstr "Customers"
+
+#: dashboard/models.py:77
+msgid "Expense without issue"
+msgstr "Expense without issue"
+
+#: dashboard/models.py:86
+msgid "Expense"
+msgstr "Expense"
+
+#: dashboard/models.py:87
+#: dashboard/templates/dashboard/financial_report.html:187
+msgid "Expenses"
+msgstr "Expenses"
+
+#: dashboard/models.py:100
+msgid "Income without name"
+msgstr "Income without name"
+
+#: dashboard/models.py:109
+msgid "Other Income"
+msgstr "Other Income"
+
+#: dashboard/models.py:110
+msgid "Other Incomes"
+msgstr "Other Incomes"
+
+#: dashboard/templates/dashboard/base.html:8
+msgid "Accounting Panel"
+msgstr "Accounting Panel"
+
+#: dashboard/templates/dashboard/base.html:26
+#, fuzzy
+#| msgid "Accounting Panel"
+msgid "Accounting"
+msgstr "Accounting Panel"
+
+#: dashboard/templates/dashboard/base.html:31
+#: dashboard/templates/dashboard/financial_report.html:5
+msgid "Financial Report"
+msgstr "Financial Report"
+
+#: dashboard/templates/dashboard/base.html:42
+#, fuzzy
+#| msgid "User Profile"
+msgid "Settings & Profile"
+msgstr "User Profile"
+
+#: dashboard/templates/dashboard/base.html:48
+msgid "Logout"
+msgstr "Logout"
+
+#: dashboard/templates/dashboard/base.html:80
+#, fuzzy
+#| msgid "Profile"
+msgid "Edit Profile"
+msgstr "Profile"
+
+#: dashboard/templates/dashboard/base.html:84
+msgid "Theme"
+msgstr ""
+
+#: dashboard/templates/dashboard/customer_dashboard.html:4
+msgid "Customer Management"
+msgstr "Customer Management"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:5
+msgid "Customer Management Dashboard"
+msgstr "Customer Management Dashboard"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:15
+msgid "Total Gig Sold"
+msgstr "Total Gig Sold"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:16
+msgid "Gig"
+msgstr "Gig"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:19
+msgid "Total Paid Revenue"
+msgstr "Total Paid Revenue"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:23
+msgid "Total Unpaid"
+msgstr "Total Unpaid"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:31
+#, fuzzy
+#| msgid "Customers"
+msgid "Customers List"
+msgstr "Customers"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:35
+#, fuzzy
+#| msgid "Referrer"
+msgid "All Referrers"
+msgstr "Referrer"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:43
+#: dashboard/templates/dashboard/customer_dashboard.html:99
+msgid "Add New Customer"
+msgstr "Add New Customer"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:51
+#, fuzzy
+#| msgid "Full Name"
+msgid "Name"
+msgstr "Full Name"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:52
+msgid "Expiration"
+msgstr ""
+
+#: dashboard/templates/dashboard/customer_dashboard.html:53
+#, fuzzy
+#| msgid "Payment Date (Shamsi)"
+msgid "Payment Date"
+msgstr "Payment Date (Shamsi)"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:54
+#, fuzzy
+#| msgid "Paid Status"
+msgid "Status"
+msgstr "Paid Status"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:55
+msgid "Actions"
+msgstr "Actions"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:68
+msgid "Paid"
+msgstr "Paid"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:73
+msgid "Unpaid"
+msgstr "Unpaid"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:80
+msgid "Are you sure?"
+msgstr "Are you sure?"
+
+#: dashboard/templates/dashboard/customer_dashboard.html:88
+msgid "No customers to display."
+msgstr "No customers to display."
+
+#: dashboard/templates/dashboard/customer_dashboard.html:107
+msgid "Add Customer"
+msgstr "Add Customer"
+
+#: dashboard/templates/dashboard/edit_customer.html:4
+msgid "Edit Customer"
+msgstr "Edit Customer"
+
+#: dashboard/templates/dashboard/edit_customer.html:5
+msgid "Edit Customer Information"
+msgstr "Edit Customer Information"
+
+#: dashboard/templates/dashboard/edit_customer.html:14
+msgid "Editing"
+msgstr "Editing"
+
+#: dashboard/templates/dashboard/edit_customer.html:20
+msgid "Save Changes"
+msgstr "Save Changes"
+
+#: dashboard/templates/dashboard/edit_customer.html:23
+msgid "Cancel"
+msgstr "Cancel"
+
+#: dashboard/templates/dashboard/financial_report.html:6
+#, fuzzy
+#| msgid "Financial Report"
+msgid "Financial Dashboard"
+msgstr "Financial Report"
+
+#: dashboard/templates/dashboard/financial_report.html:22
+msgid "Total Income"
+msgstr "Total Income"
+
+#: dashboard/templates/dashboard/financial_report.html:31
+msgid "Total Expenses"
+msgstr "Total Expenses"
+
+#: dashboard/templates/dashboard/financial_report.html:46
+msgid "Net Profit"
+msgstr "Net Profit"
+
+#: dashboard/templates/dashboard/financial_report.html:64
+msgid "Activity"
+msgstr ""
+
+#: dashboard/templates/dashboard/financial_report.html:66
+msgid "Daily"
+msgstr ""
+
+#: dashboard/templates/dashboard/financial_report.html:67
+msgid "Weekly"
+msgstr ""
+
+#: dashboard/templates/dashboard/financial_report.html:68
+msgid "Monthly"
+msgstr ""
+
+#: dashboard/templates/dashboard/financial_report.html:79
+#, fuzzy
+#| msgid "Total Income"
+msgid "Today's Income"
+msgstr "Total Income"
+
+#: dashboard/templates/dashboard/financial_report.html:83
+#, fuzzy
+#| msgid "Total Expenses"
+msgid "Today's Expenses"
+msgstr "Total Expenses"
+
+#: dashboard/templates/dashboard/financial_report.html:92
+msgid "Recent Activities"
+msgstr ""
+
+#: dashboard/templates/dashboard/financial_report.html:107
+#, fuzzy
+#| msgid "Add New Customer"
+msgid "New Customer:"
+msgstr "Add New Customer"
+
+#: dashboard/templates/dashboard/financial_report.html:108
+#, fuzzy
+#| msgid "Expense"
+msgid "Expense:"
+msgstr "Expense"
+
+#: dashboard/templates/dashboard/financial_report.html:109
+#, fuzzy
+#| msgid "Add Income"
+msgid "Income:"
+msgstr "Add Income"
+
+#: dashboard/templates/dashboard/financial_report.html:112
+msgid "ago"
+msgstr ""
+
+#: dashboard/templates/dashboard/financial_report.html:119
+msgid "No recent activities."
+msgstr ""
+
+#: dashboard/templates/dashboard/financial_report.html:125
+msgid "Quick Transaction"
+msgstr ""
+
+#: dashboard/templates/dashboard/financial_report.html:126
+#: dashboard/templates/dashboard/financial_report.html:144
+#, fuzzy
+#| msgid "Add Income"
+msgid "Add Income"
+msgstr "Add Income"
+
+#: dashboard/templates/dashboard/financial_report.html:127
+#: dashboard/templates/dashboard/financial_report.html:161
+msgid "Add Expense"
+msgstr "Add Expense"
+
+#: dashboard/templates/dashboard/financial_report.html:136
+msgid "Add Income (Server & Support)"
+msgstr "Add Income (Server & Support)"
+
+#: dashboard/templates/dashboard/financial_report.html:153
+msgid "Add Daily Expense"
+msgstr "Add Daily Expense"
+
+#: dashboard/templates/dashboard/financial_report.html:179
+#, fuzzy
+#| msgid "Add Income"
+msgid "Income"
+msgstr "Add Income"
+
+#: dashboard/templates/dashboard/profile.html:4
+msgid "User Profile"
+msgstr "User Profile"
+
+#: dashboard/templates/dashboard/profile.html:5
+msgid "Profile Management"
+msgstr "Profile Management"
+
+#: dashboard/templates/dashboard/profile.html:11
+#, fuzzy
+#| msgid "Profile"
+msgid "Profile Picture"
+msgstr "Profile"
+
+#: dashboard/templates/dashboard/profile.html:17
+#: dashboard/templates/dashboard/profile.html:64
+msgid "Choose a file"
+msgstr ""
+
+#: dashboard/templates/dashboard/profile.html:21
+msgid "Upload New Picture"
+msgstr ""
+
+#: dashboard/templates/dashboard/profile.html:29
+msgid "User Information"
+msgstr "User Information"
+
+#: dashboard/templates/dashboard/profile.html:34
+msgid "Save Information"
+msgstr "Save Information"
+
+#: dashboard/templates/dashboard/profile.html:40
+#: dashboard/templates/dashboard/profile.html:45
+msgid "Change Password"
+msgstr "Change Password"
+
+#: dashboard/views.py:163
+#, fuzzy
+#| msgid "Customer '{name}' added successfully."
+msgid "Expense added successfully."
+msgstr "Customer '{name}' added successfully."
+
+#: dashboard/views.py:171
+#, fuzzy
+#| msgid "Customer '{name}' added successfully."
+msgid "Income added successfully."
+msgstr "Customer '{name}' added successfully."
+
+#: dashboard/views.py:218
+#, python-brace-format
+msgid "Customer '{name}' added successfully."
+msgstr "Customer '{name}' added successfully."
+
+#: dashboard/views.py:241
+#, python-brace-format
+msgid "Customer '{name}' updated successfully."
+msgstr "Customer '{name}' updated successfully."
+
+#: dashboard/views.py:258
+msgid "Profile details updated successfully."
+msgstr "Profile details updated successfully."
+
+#: dashboard/views.py:264
+msgid "Password changed successfully."
+msgstr "Password changed successfully."
+
+#: dashboard/views.py:269
+msgid "Your avatar was successfully updated!"
+msgstr ""
+
+#: dashboard/views.py:297
+#, python-brace-format
+msgid "Customer '{name}' deleted successfully."
+msgstr "Customer '{name}' deleted successfully."
+
+#: dashboard/views.py:307
+#, fuzzy
+#| msgid "Customer '{name}' deleted successfully."
+msgid "Expense deleted successfully."
+msgstr "Customer '{name}' deleted successfully."
+
+#: dashboard/views.py:316
+#, fuzzy
+#| msgid "Customer '{name}' deleted successfully."
+msgid "Income deleted successfully."
+msgstr "Customer '{name}' deleted successfully."
+
+#~ msgid "Monthly Financial Report"
+#~ msgstr "Monthly Financial Report"
+
+#~ msgid "Show report for month:"
+#~ msgstr "Show report for month:"
+
+#~ msgid "All Months"
+#~ msgstr "All Months"
+
+#~ msgid "Incomes List"
+#~ msgstr "Incomes List"
+
+#~ msgid "No income has been recorded."
+#~ msgstr "No income has been recorded."
+
+#~ msgid "Expenses List"
+#~ msgstr "Expenses List"
+
+#~ msgid "No expense has been recorded."
+#~ msgstr "No expense has been recorded."
+
+#~ msgid "Please correct the errors below."
+#~ msgstr "Please correct the errors below."

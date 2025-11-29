@@ -1,0 +1,110 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Bank Accounts" %}{% endblock %}
+{% block page_title %}{% trans "Bank Accounts" %}{% endblock %}
+{% block page_title_desktop %}{% trans "Bank Accounts Management" %}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <div class="lg:col-span-1">
+        <div class="glass-card p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-6 text-start flex items-center gap-2">
+                <i data-feather="plus-circle" class="text-green-400"></i>
+                <span>{% trans "Add New Bank Account" %}</span>
+            </h2>
+            <form method="post" class="space-y-6 form-container text-start">
+                {% csrf_token %}
+                <div>
+                    {{ form.bank_name.label_tag }}
+                    {{ form.bank_name }}
+                </div>
+                <div>
+                    {{ form.account_number.label_tag }}
+                    {{ form.account_number }}
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full btn btn-gradient">{% trans "Add Account" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="lg:col-span-2">
+        <div class="glass-card p-6">
+            <h2 class="text-xl font-bold mb-4">{% trans "Bank Accounts List" %}</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-start">
+                    <thead>
+                        <tr class="border-b border-[var(--border-color)]">
+                            <th class="p-3 text-start">{% trans "Bank Name" %}</th>
+                            <th class="p-3 text-start">{% trans "Account Number" %}</th>
+                            <th class="p-3 text-center">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in accounts %}
+                        <tr class="border-b border-[var(--border-color)] transition-colors duration-200 hover:bg-[var(--glass-bg)]">
+                            <td class="p-3 font-semibold">{{ account.bank_name }}</td>
+                            <td class="p-3">{{ account.account_number|default:"-" }}</td>
+                            <td class="p-3 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{% url 'dashboard:bank_account_edit' account.id %}" class="font-semibold text-[var(--accent)] hover:underline">{% trans "Edit" %}</a>
+                                    <span class="text-[var(--text-secondary)]">|</span>
+                                    <button onclick="openDeleteModal('{% url 'dashboard:bank_account_delete' account.id %}', '{{ account.bank_name }}')" class="font-semibold text-danger hover:underline">{% trans "Delete" %}</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="p-6 text-center text-[var(--text-secondary)]">{% trans "No bank accounts found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card p-8 rounded-lg shadow-xl w-full max-w-md">
+        <h2 class="text-xl font-bold mb-4">{% trans "Confirm Deletion" %}</h2>
+        <p class="mb-6">{% blocktrans %}Are you sure you want to delete the bank account <strong id="itemName"></strong>? This action cannot be undone.{% endblocktrans %}</p>
+        <form id="deleteForm" method="post">
+            {% csrf_token %}
+            <div class="flex justify-end gap-4">
+                <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-danger">{% trans "Yes, Delete" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Delete Modal Logic (from the original version)
+const deleteModal = document.getElementById('deleteModal');
+const deleteForm = document.getElementById('deleteForm');
+const itemNameSpan = document.getElementById('itemName');
+
+function openDeleteModal(url, name) {
+    deleteForm.action = url;
+    itemNameSpan.textContent = name;
+    deleteModal.classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    deleteModal.classList.add('hidden');
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    if (event.target == deleteModal) {
+        closeDeleteModal();
+    }
+}
+</script>
+{% endblock %}
