@@ -1,34 +1,91 @@
-{% extends "dashboard/base.html" %}
+{% extends 'dashboard/base.html' %}
 {% load i18n %}
 
 {% block title %}{% trans "Edit Subscription" %}{% endblock %}
 {% block page_title %}{% trans "Edit Subscription" %}{% endblock %}
-{% block page_title_desktop %}{% trans "Edit Subscription for" %} {{ subscription.customer.name }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="glass-card p-8">
-        <h2 class="text-2xl font-bold mb-4">{% trans "Editing Subscription" %}</h2>
-        <form method="post" class="space-y-4 form-container">
+<div class="max-w-3xl mx-auto">
+    <div class="glass-card p-8 border border-[var(--border-color)]">
+
+        <div class="flex items-center gap-4 mb-8 border-b border-[var(--border-color)] pb-4">
+            <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500">
+                <i data-feather="edit-3" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-[var(--text-main)]">{% trans "Edit Subscription" %}</h2>
+                <p class="text-sm text-[var(--text-muted)]">{{ subscription.customer.name }}</p>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-6">
             {% csrf_token %}
 
             {% if form.errors %}
-                <div class="alert alert-error">
-                    <p class="font-bold mb-2">{% trans "Please correct the errors below:" %}</p>
-                    {{ form.non_field_errors }}
-                    <ul class="list-disc list-inside">
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <li>{{ field.label }}: {{ error }}</li>
-                        {% endfor %}
-                    {% endfor %}
-                    </ul>
+                <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm">
+                    {{ form.errors }}
                 </div>
             {% endif %}
-            {{ form.as_p }}
-            <div class="flex items-center gap-4 pt-4">
-                <button type="submit" class="w-full btn btn-gradient">{% trans "Save Changes" %}</button>
-                <a href="{% url 'dashboard:subscription_dashboard' %}?year={{ subscription.year }}&month={{ subscription.month }}" class="w-full btn btn-secondary text-center">{% trans "Cancel" %}</a>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Customer" %}</label>
+                    {{ form.customer }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Year" %}</label>
+                    {{ form.year }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Month" %}</label>
+                    {{ form.month }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Price" %}</label>
+                    {{ form.price }}
+                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Giga" %}</label>
+                    {{ form.giga }}
+                </div>
+
+                <div class="flex items-center pt-8">
+                    <label class="switch form-switch">
+                        <input type="checkbox" name="status" value="success" {% if form.status.value == 'success' %}checked{% endif %}>
+                        <span class="switch-slider"></span>
+                    </label>
+                    <label class="mx-3 text-[var(--text-main)] font-medium">{% trans "Paid Status" %}</label>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Payment Date" %}</label>
+                    <input type="text" name="payment_date" value="{{ form.payment_date.value|default:'' }}" class="form-input jalali-datepicker">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Expire Date" %}</label>
+                    <input type="date" name="expire_date" value="{{ form.expire_date.value|date:'Y-m-d'|default:'' }}" class="form-input">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Referrer" %}</label>
+                    {{ form.referrer }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Bank Account" %}</label>
+                    {{ form.destination_bank }}
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-4 mt-8 pt-6 border-t border-[var(--border-color)]">
+                <a href="{% url 'dashboard:subscription_dashboard' %}" class="px-6 py-2.5 rounded-xl border border-[var(--border-color)] text-[var(--text-muted)] hover:bg-[var(--bg-body)] transition-colors">
+                    {% trans "Cancel" %}
+                </a>
+                <button type="submit" class="px-8 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg hover:shadow-blue-500/30 transition-transform hover:-translate-y-1">
+                    {% trans "Save Changes" %}
+                </button>
             </div>
         </form>
     </div>
@@ -38,10 +95,15 @@
 {% block extra_scripts %}
 <script>
     $(document).ready(function() {
-        // فعال کردن Select2 برای فیلدهای فرم
-        $('#id_customer').select2({ theme: "classic" });
-        $('#id_referrer').select2({ theme: "classic", allowClear: true });
-        $('#id_destination_bank').select2({ theme: "classic", allowClear: true });
+        // فعال‌سازی Select2 برای تمام سلکت‌ها
+        $('select').select2({
+            theme: "classic",
+            width: '100%',
+            dir: document.documentElement.dir
+        });
+
+        // فعال‌سازی تقویم
+        window.initPersianDatepicker(".jalali-datepicker");
     });
 </script>
 {% endblock %}

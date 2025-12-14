@@ -1,22 +1,87 @@
-{% extends "dashboard/base.html" %}
+{% extends 'dashboard/base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Edit Bank Account" %}{% endblock %}
-{% block page_title %}{% trans "Editing" %} {{ account.bank_name }}{% endblock %}
-{% block page_title_desktop %}{% trans "Editing Bank Account:" %} {{ account.bank_name }}{% endblock %}
+{% block title %}{% trans "Bank Accounts" %}{% endblock %}
+{% block page_title %}{% trans "Bank Accounts" %}{% endblock %}
 
 {% block content %}
-    <div class="max-w-lg mx-auto">
-        <div class="glass-card p-8">
-            <h2 class="text-2xl font-bold mb-6 text-center">{% trans "Edit Bank Account Information" %}</h2>
-            <form method="post" class="space-y-4 form-container">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <div class="flex gap-4 pt-4">
-                    <button type="submit" class="w-full btn btn-gradient">{% trans "Save Changes" %}</button>
-                    <a href="{% url 'dashboard:bank_account_list' %}" class="w-full btn btn-secondary">{% trans "Cancel" %}</a>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <div class="lg:col-span-1">
+        <div class="glass-card p-6 sticky top-6">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--border-color)]">
+                <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <i data-feather="credit-card" class="w-5 h-5"></i>
                 </div>
+                <h2 class="text-lg font-bold text-[var(--text-main)]">{% trans "Add New Account" %}</h2>
+            </div>
+
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+                {% for field in form %}
+                <div>
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold shadow-lg hover:shadow-emerald-500/30 transition-transform hover:-translate-y-1">
+                    {% trans "Create Account" %}
+                </button>
             </form>
         </div>
     </div>
+
+    <div class="lg:col-span-2">
+        <div class="glass-card p-6">
+            <h2 class="text-xl font-bold text-[var(--text-main)] mb-6 flex items-center gap-2">
+                <i data-feather="list" class="text-blue-500"></i>
+                {% trans "Accounts List" %}
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="custom-table w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Bank Name" %}</th>
+                            <th>{% trans "Account Number" %}</th>
+                            <th class="text-center">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for account in accounts %}
+                        <tr class="hover:bg-[var(--bg-body)] transition-colors">
+                            <td class="font-bold">{{ account.bank_name }}</td>
+                            <td class="font-mono text-[var(--text-muted)]">{{ account.account_number|default:"-" }}</td>
+                            <td class="text-center">
+                                <div class="flex items-center justify-center gap-3">
+                                    <a href="{% url 'dashboard:bank_account_edit' account.pk %}" class="p-2 rounded-lg text-blue-400 hover:bg-blue-500/10 transition-colors">
+                                        <i data-feather="edit-2" class="w-4 h-4"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="p-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors"
+                                            data-url="{% url 'dashboard:bank_account_delete' account.pk %}"
+                                            data-name="{{ account.bank_name }}"
+                                            onclick="openDeleteModal(this)">
+                                        <i data-feather="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-8 text-[var(--text-muted)]">
+                                {% trans "No bank accounts found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

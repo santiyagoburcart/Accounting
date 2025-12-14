@@ -19,6 +19,13 @@ from .views import (
     add_transaction_view, # <-- ایمپورت جدید
     expense_edit_view,
     other_income_edit_view,
+    get_customer_details,
+    backup_panel,
+    download_backup,
+    telegram_backup,
+    restore_db,
+
+
 )
 
 app_name = 'dashboard'
@@ -52,5 +59,14 @@ urlpatterns = [
 
     path('expense/<int:pk>/edit/', expense_edit_view, name='expense_edit'), # <-- جدید
     path('income/<int:pk>/edit/', other_income_edit_view, name='other_income_edit'), # <-- جدید
+    # AJAX URLs
+    path('ajax/get-customer-details/', get_customer_details, name='get_customer_details'),
+
+    # backup url
+    path('backup/panel/', backup_panel, name='backup_panel'),
+    path('backup/download/', download_backup, name='backup_download'),
+    path('backup/telegram/', telegram_backup, name='backup_telegram'),
+    path('backup/restore/', restore_db, name='backup_restore'),
+
 
 ]

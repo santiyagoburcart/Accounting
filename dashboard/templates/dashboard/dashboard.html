@@ -1,168 +1,111 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد مدیریت</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Media for Jalali Date Picker -->
-    {{ form.media }}
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
-        body { 
-            font-family: 'Vazirmatn', sans-serif; 
-            background-color: #1a1b26; 
-            color: #c0caf5;
-        }
-        .glass-card { 
-            background: rgba(41, 42, 61, 0.6); 
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 1.5rem; 
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-        .form-input, .jdatepicker, input[type="date"] { 
-            background-color: #24283b; 
-            border: 1px solid #414868; 
-            color: #c0caf5; 
-            border-radius: 0.75rem; 
-            padding: 0.75rem 1rem; 
-            width: 100%; 
-            transition: border-color 0.3s, box-shadow 0.3s; 
-        }
-        .form-input:focus, .jdatepicker:focus, input[type="date"]:focus { 
-            outline: none; 
-            border-color: #bb9af7; 
-            box-shadow: 0 0 0 3px rgba(187, 154, 247, 0.3);
-        }
-        .btn-gradient { 
-            background-image: linear-gradient(to right, #f7768e, #bb9af7); 
-            transition: all 0.3s ease; 
-            box-shadow: 0 4px 15px 0 rgba(187, 154, 247, 0.4);
-        }
-        .btn-gradient:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 20px 0 rgba(187, 154, 247, 0.5);
-        }
-        .text-gradient {
-            background: linear-gradient(to right, #f7768e, #bb9af7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-        }
-        .error-message { 
-            color: #f7768e; 
-            font-size: 0.875rem; 
-            margin-top: 0.25rem;
-        }
-        .success-message { 
-            background-color: rgba(158, 206, 106, 0.1); 
-            border: 1px solid #9ece6a; 
-            color: #9ece6a; 
-            padding: 1rem; 
-            border-radius: 0.75rem; 
-            margin-bottom: 1.5rem; 
-            text-align: center;
-        }
-        input[type="checkbox"] {
-            transform: scale(1.2);
-        }
-    </style>
-</head>
-<body class="p-4 md:p-8">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-            <h1 class="text-2xl md:text-3xl font-bold text-center md:text-right">داشبورد مدیریت</h1>
-            <div class="flex items-center space-x-4 space-x-reverse">
-                <!-- لینک جدید برای پروفایل -->
-                <a href="{% url 'profile' %}" class="flex items-center text-lg hover:text-purple-400 transition">
-                    <i data-feather="user" class="ml-2"></i>
-                    <span>پروفایل {{ user.username }}</span>
-                </a>
-                <form method="post" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-gradient text-white font-bold py-2 px-4 rounded-full">
-                        خروج
-                    </button>
-                </form>
-            </div>
-        </header>
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load humanize %}
 
-        <!-- Messages -->
-        {% if messages %}
-            {% for message in messages %}
-                {% if message.tags == 'success' %}
-                    <div class="success-message">
-                        {{ message }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
+{% block title %}داشبورد اصلی{% endblock %}
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="glass-card p-6 flex items-center">
-                <div>
-                    <h3 class="text-lg text-gray-400">کل گیگ فروخته شده</h3>
-                    <p class="text-3xl font-bold text-gradient">{{ total_giga }} گیگ</p>
+{% block content %}
+    <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white mb-2">سلام، {{ user.first_name|default:user.username }} 👋</h1>
+            <p class="text-[var(--text-muted)]">به پنل مدیریت خوش اومدی. بیزنس رو بترکون!</p>
+        </div>
+        <div class="text-sm text-[var(--text-muted)] bg-[var(--bg-sidebar)] px-4 py-2 rounded-full border border-[var(--border-color)]">
+            📅 امروز: <span id="current-date-display"></span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div class="glass-card p-6 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-purple-500/20 rounded-xl text-purple-400">
+                    <i data-feather="database"></i>
                 </div>
+                <span class="text-xs font-bold text-green-400 flex items-center gap-1">
+                    +12% <i data-feather="trending-up" class="w-3 h-3"></i>
+                </span>
             </div>
-            <div class="glass-card p-6 flex items-center">
-                <div>
-                    <h3 class="text-lg text-gray-400">جمع کل درآمد</h3>
-                    <p class="text-3xl font-bold text-gradient">{{ total_revenue|floatformat:0 }} تومان</p>
-                </div>
-            </div>
-            <div class="glass-card p-6 flex items-center">
-                <div>
-                    <h3 class="text-lg text-gray-400">پرداخت شده</h3>
-                    <p class="text-3xl font-bold text-gradient">{{ paid_amount|floatformat:0 }} تومان</p>
-                </div>
-            </div>
-            <div class="glass-card p-6 flex items-center">
-                <div>
-                    <h3 class="text-lg text-gray-400">بدهکار</h3>
-                    <p class="text-3xl font-bold text-gradient">{{ unpaid_amount|floatformat:0 }} تومان</p>
-                </div>
-            </div>
+            <h3 class="text-[var(--text-muted)] text-sm font-medium mb-1">حجم فروخته شده</h3>
+            <p class="text-3xl font-black text-white">{{ total_giga }} <span class="text-sm font-normal text-gray-500">گیگ</span></p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Form Card -->
-            <div class="lg:col-span-1 glass-card p-8">
-                <h2 class="text-2xl font-bold mb-6 flex items-center">
-                    <i data-feather="user-plus" class="w-8 h-8 ml-3"></i>
-                    افزودن مشتری جدید
-                </h2>
-                <form method="post" class="space-y-4">
+        <div class="glass-card p-6 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-blue-500/20 rounded-xl text-blue-400">
+                    <i data-feather="dollar-sign"></i>
+                </div>
+            </div>
+            <h3 class="text-[var(--text-muted)] text-sm font-medium mb-1">کل درآمد</h3>
+            <p class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">{{ total_revenue|intcomma }} <span class="text-sm font-normal text-gray-500">تومان</span></p>
+        </div>
+
+        <div class="glass-card p-6 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-emerald-500/20 rounded-xl text-emerald-400">
+                    <i data-feather="check-circle"></i>
+                </div>
+            </div>
+            <h3 class="text-[var(--text-muted)] text-sm font-medium mb-1">دریافت شده</h3>
+            <p class="text-3xl font-black text-white">{{ paid_amount|intcomma }} <span class="text-sm font-normal text-gray-500">تومان</span></p>
+        </div>
+
+        <div class="glass-card p-6 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-all"></div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-rose-500/20 rounded-xl text-rose-400">
+                    <i data-feather="alert-circle"></i>
+                </div>
+            </div>
+            <h3 class="text-[var(--text-muted)] text-sm font-medium mb-1">مانده بدهی</h3>
+            <p class="text-3xl font-black text-rose-400">{{ unpaid_amount|intcomma }} <span class="text-sm font-normal text-gray-500">تومان</span></p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="lg:col-span-1">
+            <div class="glass-card p-6 sticky top-6">
+                <div class="flex items-center gap-3 mb-6 border-b border-[var(--border-color)] pb-4">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
+                        <i data-feather="user-plus" class="w-5 h-5"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">مشتری جدید</h2>
+                </div>
+                
+                <form method="post" class="space-y-5">
                     {% csrf_token %}
                     {% for field in form %}
-                    <div>
-                        <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            {% for error in field.errors %}
-                                <p class="error-message">{{ error }}</p>
-                            {% endfor %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                            {{ field.label }}
+                        </label>
+                        {{ field }} {% if field.errors %}
+                            <p class="text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>
                         {% endif %}
                     </div>
                     {% endfor %}
-                    <button type="submit" class="w-full btn-gradient text-white font-bold py-3 px-4 rounded-lg text-lg mt-4">
-                        ثبت مشتری
+                    
+                    <button type="submit" class="btn-primary w-full mt-6 flex items-center justify-center gap-2 group">
+                        <span>افزودن مشتری</span>
+                        <i data-feather="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></i>
                     </button>
                 </form>
             </div>
+        </div>
 
-            <!-- Customer List Card -->
-            <div class="lg:col-span-2 glass-card p-8">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-2xl font-bold flex items-center">
-                        <i data-feather="list" class="w-8 h-8 ml-3"></i>
-                        لیست مشتریان
+        <div class="lg:col-span-2">
+            <div class="glass-card p-6 min-h-[500px]">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-feather="list" class="text-[var(--primary)]"></i>
+                        لیست مشتریان اخیر
                     </h2>
-                    <form method="get" class="flex items-center w-full md:w-auto">
-                        <select name="month" class="form-input" onchange="this.form.submit()">
+                    
+                    <form method="get" class="w-full sm:w-48">
+                        <select name="month" class="form-select text-sm" onchange="this.form.submit()">
                             <option value="">همه ماه‌ها</option>
                             {% for month_num, month_name in months.items %}
                                 <option value="{{ month_num }}" {% if selected_month == month_num|stringformat:"s" %}selected{% endif %}>{{ month_name }}</option>
@@ -170,52 +113,57 @@
                         </select>
                     </form>
                 </div>
+
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right text-sm">
-                        <thead class="border-b-2 border-gray-700">
+                    <table class="custom-table">
+                        <thead>
                             <tr>
-                                <th class="p-3">نام</th>
-                                <th class="p-3 hidden md:table-cell">سررسید (میلادی)</th>
-                                <th class="p-3">پرداخت (شمسی)</th>
-                                <th class="p-3">وضعیت</th>
-                                <th class="p-3">عملیات</th>
+                                <th>نام مشتری</th>
+                                <th class="hidden md:table-cell">تاریخ سررسید</th>
+                                <th>تاریخ پرداخت</th>
+                                <th>وضعیت</th>
+                                <th>عملیات</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for customer in customers %}
-                            <tr class="border-b border-gray-800 hover:bg-gray-700/20">
-                                <td class="p-3">
-                                    <div class="font-bold">{{ customer.name }}</div>
-                                    <div class="text-gray-400 md:hidden">{{ customer.phone_number }}</div>
+                            <tr>
+                                <td>
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-white">{{ customer.name }}</span>
+                                        <span class="text-xs text-[var(--text-muted)] md:hidden">{{ customer.phone_number }}</span>
+                                    </div>
                                 </td>
-                                <td class="p-3 hidden md:table-cell">{{ customer.expire_date|date:"Y-m-d"|default:"-" }}</td>
-                                <td class="p-3">{{ customer.jalali_payment_date }}</td>
-                                <td class="p-3">
+                                <td class="hidden md:table-cell text-sm text-[var(--text-muted)]">
+                                    {{ customer.expire_date|date:"Y/m/d"|default:"-" }}
+                                </td>
+                                <td class="text-sm">
+                                    {{ customer.jalali_payment_date }}
+                                </td>
+                                <td>
                                     {% if customer.is_paid %}
-                                        <span class="px-2 py-1 bg-green-500/20 text-green-300 rounded-full text-xs">پرداخت شده</span>
+                                        <span class="status-badge status-paid">پرداخت شده</span>
                                     {% else %}
-                                        <span class="px-2 py-1 bg-red-500/20 text-red-300 rounded-full text-xs">پرداخت نشده</span>
+                                        <span class="status-badge status-unpaid">پرداخت نشده</span>
                                     {% endif %}
                                 </td>
-                                <td class="p-3">
-                                    <div class="flex items-center space-x-2 space-x-reverse">
-                                        <!-- دکمه جدید برای ویرایش -->
-                                        <a href="{% url 'edit_customer' customer.id %}" class="text-blue-400 hover:text-blue-600">
-                                            <i data-feather="edit-2"></i>
+                                <td>
+                                    <div class="flex items-center gap-3 justify-end">
+                                        <a href="{% url 'dashboard:edit_customer_profile' pk=customer.pk %}" class="text-[var(--primary)] hover:text-white transition-colors p-2 hover:bg-[var(--primary)] rounded-lg">
+                                            <i data-feather="edit-2" class="w-4 h-4"></i>
                                         </a>
-                                        <form method="post" action="{% url 'delete_customer' customer.id %}" onsubmit="return confirm('آیا از حذف این مشتری مطمئن هستید؟');">
-                                            {% csrf_token %}
-                                            <button type="submit" class="text-red-400 hover:text-red-600">
-                                                <i data-feather="trash-2"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                        </div>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="5" class="text-center p-8 text-gray-500">
-                                    مشتری برای نمایش وجود ندارد.
+                                <td colspan="5" class="text-center py-10 text-[var(--text-muted)]">
+                                    <div class="flex flex-col items-center gap-4">
+                                        <div class="w-16 h-16 bg-[var(--bg-body)] rounded-full flex items-center justify-center">
+                                            <i data-feather="inbox" class="w-8 h-8 opacity-50"></i>
+                                        </div>
+                                        <p>هیچ داده‌ای یافت نشد!</p>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -225,12 +173,14 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            feather.replace();
-        });
-    </script>
-</body>
-</html>
+{% endblock %}
 
+{% block extra_scripts %}
+<script>
+    // نمایش تاریخ امروز به شمسی (به صورت ساده با JS)
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    // برای سادگی فعلا از تاریخ میلادی استفاده میکنم، اگر datepicker فعال باشه میشه شمسی کرد
+    // در فاز بعدی اینو کاملا شمسی میکنیم
+    document.getElementById('current-date-display').innerText = new Date().toLocaleDateString('fa-IR', options);
+</script>
+{% endblock %}

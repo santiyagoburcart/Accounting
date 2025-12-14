@@ -1,174 +1,223 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
-{% load custom_filters %}
+{% load humanize %}
 
-{% block title %}Subscriptions Management{% endblock %}
-{% block page_title %}Subscriptions{% endblock %}
-{% block page_title_desktop %}Subscriptions Dashboard{% endblock %}
+{% block title %}{% trans "Subscriptions Management" %}{% endblock %}
+
+{# --- تغییر نام صفحه به Subscriptions --- #}
+{% block page_title %}{% trans "Subscriptions" %}{% endblock %}
+{% block page_title_desktop %}{% trans "Subscriptions Dashboard" %}{% endblock %}
 
 {% block content %}
 
-{# START: بخش ۳ کارت بالا (طراحی جدید Tailwind) #}
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:gap-7.5">
-    {# کارت ۱ #}
-    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-md">
-        <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total GB's Sold</h3>
-        <p class="text-3xl font-bold mt-2 text-gray-900 dark:text-white">{{ total_giga_sold }} <span class="text-lg">GB</span></p>
-    </div>
-    {# کارت ۲ #}
-    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-md">
-        <div class="flex items-center justify-between">
-            <div>
-                <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total Paid Revenue</h3>
-                <p class="text-3xl font-bold text-emerald-500 mt-2">{{ paid_amount|floatformat:0 }}</p>
+{# START: PRO CARDS SECTION (Glassmorphism & Neon) #}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+    {# Card 1: Total Sold (Purple Theme) #}
+    <div class="glass-card p-6 relative overflow-hidden group hover:border-purple-500/50 transition-all duration-300">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/20 rounded-full blur-2xl group-hover:bg-purple-500/30 transition-all"></div>
+
+        <div class="flex items-center justify-between mb-4 relative z-10">
+            <div class="p-3 bg-purple-500/10 rounded-xl text-purple-400 group-hover:scale-110 transition-transform">
+                <i data-feather="database" class="w-6 h-6"></i>
             </div>
-            <div id="paid-chart" class="mt-[-10px]"></div>
+            <span class="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full flex items-center gap-1">
+                <i data-feather="trending-up" class="w-3 h-3"></i> +12%
+            </span>
+        </div>
+
+        <h3 class="text-[var(--text-muted)] text-sm font-medium mb-1">{% trans "Total GB's Sold" %}</h3>
+        <p class="text-3xl font-black text-[var(--text-main)]">
+            {{ total_giga_sold }} <span class="text-sm font-normal text-gray-500">{% trans "GB" %}</span>
+        </p>
+    </div>
+
+    {# Card 2: Total Revenue (Blue Gradient Text) #}
+    <div class="glass-card p-6 relative overflow-hidden group hover:border-blue-500/50 transition-all duration-300">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl group-hover:bg-blue-500/30 transition-all"></div>
+
+        <div class="flex items-center justify-between mb-4 relative z-10">
+            <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400 group-hover:scale-110 transition-transform">
+                <i data-feather="dollar-sign" class="w-6 h-6"></i>
+            </div>
+        </div>
+
+        <h3 class="text-[var(--text-muted)] text-sm font-medium mb-1">{% trans "Total Revenue" %}</h3>
+        <p class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+            {{ total_amount|floatformat:0|intcomma }} <span class="text-sm font-normal text-gray-500">T</span>
+        </p>
+    </div>
+
+    {# Card 3: Paid (Emerald Theme with Chart) #}
+    <div class="glass-card p-6 relative overflow-hidden group hover:border-emerald-500/50 transition-all duration-300">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl group-hover:bg-emerald-500/30 transition-all"></div>
+
+        <div class="flex justify-between items-start relative z-10">
+            <div>
+                <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-400 w-fit mb-4 group-hover:scale-110 transition-transform">
+                    <i data-feather="check-circle" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-[var(--text-muted)] text-sm font-medium mb-1">{% trans "Paid Amount" %}</h3>
+                <p class="text-2xl font-bold text-[var(--text-main)]">{{ paid_amount|floatformat:0|intcomma }}</p>
+            </div>
+            <div id="paid-chart" class="mt-2 scale-110 origin-top-right"></div>
         </div>
     </div>
-    {# کارت ۳ #}
-    <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-md">
-        <div class="flex items-center justify-between">
+
+    {# Card 4: Unpaid (Rose Theme with Chart) #}
+    <div class="glass-card p-6 relative overflow-hidden group hover:border-rose-500/50 transition-all duration-300">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-rose-500/20 rounded-full blur-2xl group-hover:bg-rose-500/30 transition-all"></div>
+
+        <div class="flex justify-between items-start relative z-10">
             <div>
-                <h3 class="text-lg font-medium text-gray-500 dark:text-gray-400">Total Unpaid</h3>
-                <p class="text-3xl font-bold text-red-500 mt-2">{{ unpaid_amount|floatformat:0 }}</p>
+                <div class="p-3 bg-rose-500/10 rounded-xl text-rose-400 w-fit mb-4 group-hover:scale-110 transition-transform">
+                    <i data-feather="alert-circle" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-[var(--text-muted)] text-sm font-medium mb-1">{% trans "Unpaid Amount" %}</h3>
+                <p class="text-2xl font-bold text-rose-400">{{ unpaid_amount|floatformat:0|intcomma }}</p>
             </div>
-            <div id="unpaid-chart" class="mt-[-10px]"></div>
+            <div id="unpaid-chart" class="mt-2 scale-110 origin-top-right"></div>
         </div>
     </div>
 </div>
-{# END: بخش کارت‌ها #}
+{# END: PRO CARDS SECTION #}
 
 
-{# START: کارت اصلی جدول و فیلترها (طراحی مجدد بر اساس عکس) #}
-<div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-6 shadow-md mt-6">
+{# START: Main Table Card #}
+<div class="glass-card p-4 sm:p-6 mt-6">
 
     <form method="get">
-        {# بخش هدر کارت: شامل جستجو و دکمه افزودن #}
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+        {# Header: Search and Add Button #}
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 pb-4 border-b border-[var(--border-color)]">
 
-            {# بخش جستجو #}
+            {# Search #}
             <div class="relative w-full md:w-1/3 lg:w-1/4">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3">
                     <i data-feather="search" class="w-5 h-5 text-gray-400"></i>
                 </span>
-                <input type="search" name="q" value="{{ search_query }}" placeholder="Search by customer or referrer..."
-                       class="w-full pl-10 pr-4 py-2 form-input bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <input type="search" name="q" value="{{ search_query }}" placeholder="{% trans "Search..." %}"
+                       class="w-full pl-10 pr-4 py-2 form-input">
             </div>
 
-            {# دکمه افزودن مودال #}
+            {# Add Modal Button #}
             <div class="w-full md:w-auto">
                 <button type="button" id="openAddModalBtn"
-                        class="w-full md:w-auto flex items-center justify-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        class="w-full md:w-auto flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all hover:-translate-y-1">
                     <i data-feather="plus" class="inline-block w-5 h-5 mr-1"></i>
-                    Add New Subscription
+                    {% trans "Add Subscription" %}
                 </button>
             </div>
         </div>
 
-        {# بخش فیلترهای میانی: شامل تب‌ها و تاریخ #}
+        {# Filters: Tabs and Date #}
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 py-4">
 
-            {# تب‌های وضعیت پرداخت #}
-            <div class="flex items-center gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+            {# Status Tabs #}
+            <div class="flex items-center gap-2 p-1 bg-[var(--bg-body)] rounded-lg border border-[var(--border-color)]">
                 <a href="?status=all&year={{ selected_year }}&month={{ selected_month }}&q={{ search_query }}"
-                   class="px-3 py-1 rounded-md text-sm font-medium {% if status_filter == 'all' %}bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 shadow-sm{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">
-                    All Users
+                   class="px-4 py-1.5 rounded-md text-sm font-medium transition-all {% if status_filter == 'all' %}bg-[var(--bg-card)] text-[var(--primary)] shadow-sm{% else %}text-[var(--text-muted)] hover:text-[var(--text-main)]{% endif %}">
+                    {% trans "All" %}
                 </a>
                 <a href="?status=paid&year={{ selected_year }}&month={{ selected_month }}&q={{ search_query }}"
-                   class="px-3 py-1 rounded-md text-sm font-medium {% if status_filter == 'paid' %}bg-white dark:bg-gray-900 text-emerald-600 dark:text-emerald-400 shadow-sm{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">
-                    Paid
+                   class="px-4 py-1.5 rounded-md text-sm font-medium transition-all {% if status_filter == 'paid' %}bg-[var(--bg-card)] text-emerald-400 shadow-sm{% else %}text-[var(--text-muted)] hover:text-[var(--text-main)]{% endif %}">
+                    {% trans "Paid" %}
                 </a>
                 <a href="?status=unpaid&year={{ selected_year }}&month={{ selected_month }}&q={{ search_query }}"
-                   class="px-3 py-1 rounded-md text-sm font-medium {% if status_filter == 'unpaid' %}bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 shadow-sm{% else %}text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600{% endif %}">
-                    Unpaid
+                   class="px-4 py-1.5 rounded-md text-sm font-medium transition-all {% if status_filter == 'unpaid' %}bg-[var(--bg-card)] text-rose-400 shadow-sm{% else %}text-[var(--text-muted)] hover:text-[var(--text-main)]{% endif %}">
+                    {% trans "Unpaid" %}
                 </a>
             </div>
 
-            {# فیلترهای تاریخ (سال و ماه) #}
+            {# Date Filters #}
             <div class="flex items-center gap-2">
-                <select name="month" class="w-auto" onchange="this.form.submit()">
+                <select name="month" class="w-32 form-select" onchange="this.form.submit()">
                     {% for month_num, month_name in months.items %}
                         <option value="{{ month_num }}" {% if month_num == selected_month %}selected{% endif %}>{{ month_name }}</option>
                     {% endfor %}
                 </select>
-                <select name="year" class="w-auto" onchange="this.form.submit()">
+                <select name="year" class="w-24 form-select" onchange="this.form.submit()">
                     {% for year in years %}
                         <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit" class="hidden">Filter</button>
             </div>
         </div>
     </form>
 
-    {# بخش جدول #}
+    {# Table #}
     <div class="overflow-x-auto">
-        <table class="w-full text-start min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
+        <table class="custom-table w-full text-sm text-left rtl:text-right">
+            <thead>
                 <tr>
-                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Customer</th>
-                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Referrer</th>
-                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Price</th>
-                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">GB</th>
-                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Payment Date</th>
-                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Expiration Date (G)</th>
-                    <th class="p-3 text-start text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                    <th class="p-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                    <th>{% trans "Customer" %}</th>
+                    <th>{% trans "Referrer" %}</th>
+                    <th>{% trans "Price" %}</th>
+                    <th>{% trans "GB" %}</th>
+                    <th>{% trans "Payment Date" %}</th>
+                    <th>{% trans "Expire Date" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th class="text-center">{% trans "Actions" %}</th>
                 </tr>
             </thead>
-            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody>
                 {% for sub in subscriptions %}
-                    <tr class="transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td class="p-3 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{{ sub.customer.name }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.referrer.name|default:"-" }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.price|floatformat:0 }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.giga }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.jalali_payment_date }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ sub.expire_date|date:"Y/m/d"|default:"Not Set" }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm">
+                    <tr class="transition-colors duration-200">
+                        <td class="font-bold text-[var(--text-main)]">{{ sub.customer.name }}</td>
+                        <td class="text-[var(--text-muted)]">{{ sub.referrer.name|default:"-" }}</td>
+                        <td class="font-mono">{{ sub.price|floatformat:0|intcomma }}</td>
+                        <td class="font-mono text-[var(--primary)]">{{ sub.giga }}</td>
+                        <td>{{ sub.jalali_payment_date }}</td>
+                        <td>{{ sub.expire_date|date:"Y/m/d"|default:"-" }}</td>
+                        <td>
                             {% if sub.status == 'success' %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200">
-                                    Paid
+                                <span class="status-badge status-paid">
+                                    {% trans "Paid" %}
                                 </span>
                             {% else %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200">
-                                    Unpaid
+                                <span class="status-badge status-unpaid">
+                                    {% trans "Unpaid" %}
                                 </span>
                             {% endif %}
                         </td>
-                        <td class="p-3 whitespace-nowrap text-sm text-center">
-                            <div class="flex items-center justify-center gap-2">
-                                <a href="{% url 'dashboard:subscription_edit' sub.id %}" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
-                                <span class="text-gray-300 dark:text-gray-600">|</span>
+                        <td class="text-center">
+                            <div class="flex items-center justify-center gap-3">
+                                <a href="{% url 'dashboard:subscription_edit' sub.pk %}" class="p-2 rounded-lg hover:bg-blue-500/10 text-blue-400 transition-colors">
+                                     <i data-feather="edit-2" class="w-4 h-4"></i>
+                                </a>
                                 <button type="button"
-                                        data-url="{% url 'dashboard:subscription_delete' sub.id %}"
+                                        data-url="{% url 'dashboard:subscription_delete' sub.pk %}"
                                         data-name="{{ sub.customer.name }}"
                                         onclick="openDeleteModal(this)"
-                                        class="font-medium text-red-600 dark:text-red-500 hover:underline">
-                                    Delete
+                                        class="p-2 rounded-lg hover:bg-red-500/10 text-red-400 transition-colors">
+                                     <i data-feather="trash-2" class="w-4 h-4"></i>
                                 </button>
-                                </div>
+                            </div>
                         </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="8" class="p-6 text-center text-gray-500 dark:text-gray-400">No subscriptions found for this period.</td>
+                        <td colspan="8" class="p-8 text-center text-[var(--text-muted)]">
+                            <div class="flex flex-col items-center gap-2">
+                                <i data-feather="inbox" class="w-10 h-10 opacity-50"></i>
+                                <p>{% trans "No subscriptions found." %}</p>
+                            </div>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{# END: کارت اصلی جدول #}
+{# END: Main Table Card #}
 
 
-{# START: مودال افزودن اشتراک (طراحی جدید Tailwind) #}
-<div id="addSubscriptionModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+{# START: Add Modal #}
+<div id="addSubscriptionModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card p-6 sm:p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-[var(--border-color)] shadow-2xl">
 
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add New Subscription</h2>
-            <button type="button" id="closeAddModalBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+        <div class="flex justify-between items-center mb-6 border-b border-[var(--border-color)] pb-4">
+            <h2 class="text-2xl font-bold text-[var(--text-main)]">{% trans "Add New Subscription" %}</h2>
+            <button type="button" id="closeAddModalBtn" class="text-[var(--text-muted)] hover:text-white transition-colors">
                 <i data-feather="x" class="w-6 h-6"></i>
             </button>
         </div>
@@ -177,8 +226,8 @@
             {% csrf_token %}
 
             {% if form.errors %}
-                <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-300" role="alert">
-                    <p class="font-bold mb-2">Please correct the errors below:</p>
+                <div class="p-4 mb-4 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl" role="alert">
+                    <p class="font-bold mb-2">{% trans "Please correct the errors below:" %}</p>
                     {{ form.non_field_errors }}
                     <ul class="list-disc list-inside">
                     {% for field in form %}
@@ -190,169 +239,209 @@
                 </div>
             {% endif %}
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <div class="md:col-span-2">
-                    <label for="id_customer" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer</label>
-                    {{ form.customer }} {# Select2 استایل می‌گیرد #}
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Customer" %}</label>
+                    {{ form.customer }}
                 </div>
 
                 <div>
-                    <label for="id_year" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Year (Shamsi)</label>
-                    {{ form.year }} {# Select2 استایل می‌گیرد #}
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Year (Shamsi)" %}</label>
+                    {{ form.year }}
                 </div>
 
                 <div>
-                    <label for="id_month" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Month (Shamsi)</label>
-                    {{ form.month }} {# Select2 استایل می‌گیرد #}
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Month (Shamsi)" %}</label>
+                    {{ form.month }}
                 </div>
 
                 <div>
-                    <label for="id_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Price</label>
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Price" %}</label>
                     <input type="{{ form.price.field.widget.input_type }}" name="{{ form.price.name }}" id="id_price" value="{{ form.price.value|default_if_none:'' }}"
-                           class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="form-input">
                 </div>
 
                 <div>
-                    <label for="id_giga" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Giga</label>
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Giga" %}</label>
                     <input type="{{ form.giga.field.widget.input_type }}" name="{{ form.giga.name }}" id="id_giga" value="{{ form.giga.value|default_if_none:'' }}"
-                           class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="form-input">
                 </div>
 
-                <div class="flex items-center pt-5">
-                    <label class="form-switch">
+                <div class="flex items-center pt-6">
+                    <label class="switch form-switch">
                         <input type="hidden" name="status" value="pending">
                         <input type="checkbox" id="id_status" name="status" value="success" {% if form.status.value == 'success' or not form.is_bound %}checked{% endif %}>
                         <span class="switch-slider"></span>
                     </label>
-                    <label for="id_status" class="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">Paid Status</label>
+                    <label for="id_status" class="mx-3 block text-sm font-medium text-[var(--text-main)]">{% trans "Paid Status" %}</label>
                 </div>
 
                 <div>
-                    <label for="id_payment_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Date (Shamsi)</label>
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Payment Date (Shamsi)" %}</label>
                     <input type="text" name="{{ form.payment_date.name }}" id="id_payment_date" value="{{ form.payment_date.value|default_if_none:'' }}" autocomplete="off"
-                           class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500 jalali-datepicker">
+                           class="form-input jalali-datepicker">
                 </div>
 
                 <div>
-                    <label for="id_expire_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Expiration Date (Gregorian)</label>
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Expiration Date (Gregorian)" %}</label>
                     <input type="date" name="{{ form.expire_date.name }}" id="id_expire_date" value="{{ form.expire_date.value|default_if_none:''|date:'Y-m-d' }}"
-                           class="mt-1 block w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="form-input">
                 </div>
 
                 <div>
-                    <label for="id_referrer" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Service Referrer</label>
-                    {{ form.referrer }} {# Select2 استایل می‌گیرد #}
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Service Referrer" %}</label>
+                    {{ form.referrer }}
                 </div>
 
                 <div>
-                    <label for="id_destination_bank" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Destination Bank</label>
-                    {{ form.destination_bank }} {# Select2 استایل می‌گیرد #}
+                    <label class="block text-sm font-medium text-[var(--text-secondary)] mb-2">{% trans "Destination Bank" %}</label>
+                    {{ form.destination_bank }}
                 </div>
 
             </div>
 
             <button type="submit" name="add_subscription"
-                    class="w-full mt-6 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-md shadow-sm hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                Add Subscription
+                    class="w-full mt-8 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-purple-500/40 transition-all hover:-translate-y-1">
+                {% trans "Add Subscription" %}
             </button>
         </form>
     </div>
 </div>
-{# END: مودال افزودن اشتراک #}
+{# END: Add Modal #}
 
 
-{# START: مودال حذف (طراحی جدید Tailwind) #}
-<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Confirm Deletion</h2>
-        <p class="mb-6 text-gray-600 dark:text-gray-300">Are you sure you want to delete the subscription for <strong id="customerName" class="font-bold text-gray-800 dark:text-gray-100"></strong>? This action cannot be undone.</p>
+{# START: Delete Modal #}
+<div id="deleteModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card p-8 w-full max-w-md text-center border border-[var(--border-color)]">
+        <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+            <i data-feather="alert-triangle" class="w-8 h-8"></i>
+        </div>
+        <h2 class="text-xl font-bold mb-2 text-[var(--text-main)]">{% trans "Confirm Deletion" %}</h2>
+        <p class="mb-6 text-[var(--text-muted)]">{% trans "Are you sure you want to delete the subscription for" %} <strong id="customerName" class="text-[var(--text-main)]"></strong>?</p>
+
         <form id="deleteForm" method="post" action=""> {% csrf_token %}
-            <div class="flex justify-end gap-4">
+            <div class="flex justify-center gap-4">
                 <button type="button" onclick="closeDeleteModal()"
-                        class="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 font-medium rounded-md shadow-sm hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2">
-                    Cancel
+                        class="px-6 py-2 rounded-xl border border-[var(--border-color)] text-[var(--text-muted)] hover:bg-[var(--bg-body)] transition-colors">
+                    {% trans "Cancel" %}
                 </button>
                 <button type="submit"
-                        class="px-4 py-2 bg-red-600 text-white font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                    Yes, Delete
+                        class="px-6 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20">
+                    {% trans "Delete" %}
                 </button>
             </div>
         </form>
     </div>
 </div>
-{# END: مودال حذف #}
+{# END: Delete Modal #}
 
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
 $(document).ready(function() {
-    // اعمال Select2 با استایل `classic` (که در style.css بازنویسی کردیم)
+    // Select2 Settings
     const select2Options = {
         theme: "classic",
         width: '100%',
+        dir: document.documentElement.dir
     };
     const select2ModalOptions = {
         ...select2Options,
         dropdownParent: $('#addSubscriptionModal')
     };
 
-    // فیلترهای بالای صفحه (داخل فرم)
+    // Filter Select2
     $('select[name="month"]').select2(select2Options);
     $('select[name="year"]').select2(select2Options);
 
-    // فیلدهای داخل مودال
-    $('#id_customer').select2({ ...select2ModalOptions, placeholder: "Select a customer..." });
-    $('#id_referrer').select2({ ...select2ModalOptions, placeholder: "Select a referrer...", allowClear: true });
-    $('#id_destination_bank').select2({ ...select2ModalOptions, placeholder: "Select a bank account...", allowClear: true });
+    // Modal Select2
+    $('#id_customer').select2({ ...select2ModalOptions, placeholder: "{% trans 'Select a customer...' %}" });
+    $('#id_referrer').select2({ ...select2ModalOptions, placeholder: "{% trans 'Select a referrer...' %}", allowClear: true });
+    $('#id_destination_bank').select2({ ...select2ModalOptions, placeholder: "{% trans 'Select a bank account...' %}", allowClear: true });
     $('#id_year').select2(select2ModalOptions);
     $('#id_month').select2(select2ModalOptions);
 
-    // --- چارت‌ها ---
+    // --- SMART FORM LOGIC: Auto-fill Referrer ---
+    $('#id_customer').on('change', function() {
+        var customerId = $(this).val();
+        if (customerId) {
+            // نمایش لودینگ (اختیاری ولی حرفه‌ای)
+            // $('#id_referrer').prop('disabled', true);
+
+            $.ajax({
+                url: "{% url 'dashboard:get_customer_details' %}",
+                data: { 'customer_id': customerId },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.referrer_id) {
+                        // اگر مشتری معرف داشت، فیلد معرف رو پر کن
+                        $('#id_referrer').val(data.referrer_id).trigger('change');
+
+                        // یه افکت کوچیک سبز رنگ به فیلد بده که کاربر بفهمه خودکار پر شده
+                        $('#id_referrer').next('.select2-container').find('.select2-selection').css('border-color', '#34d399');
+                        setTimeout(() => {
+                             $('#id_referrer').next('.select2-container').find('.select2-selection').css('border-color', '');
+                        }, 2000);
+
+                        Toastify({
+                            text: "Referrer auto-filled! ✨",
+                            duration: 3000,
+                            gravity: "bottom",
+                            position: "right",
+                            style: { background: "linear-gradient(to right, #00b09b, #96c93d)" }
+                        }).showToast();
+                    } else {
+                        // اگر معرف نداشت، فیلد رو خالی کن (یا دست نزن)
+                        $('#id_referrer').val('').trigger('change');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching customer details:", error);
+                },
+                complete: function() {
+                    // $('#id_referrer').prop('disabled', false);
+                }
+            });
+        }
+    });
+
+    // --- Charts Logic ---
     const totalAmount = {{ total_amount|default:0 }};
     const paidAmount = {{ paid_amount|default:0 }};
-    const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    // درصدگیری ساده
     const paidPercentage = totalAmount > 0 ? Math.round((paidAmount / totalAmount) * 100) : 0;
     const unpaidPercentage = 100 - paidPercentage;
 
     const chartOptions = {
-        chart: { type: 'radialBar', height: 120, sparkline: { enabled: true } },
+        chart: { type: 'radialBar', height: 80, width: 80, sparkline: { enabled: true } },
         plotOptions: {
             radialBar: {
-                hollow: { size: '60%' },
-                track: { background: theme === 'dark' ? '#374151' : '#E5E7EB' },
+                hollow: { size: '45%' },
+                track: { background: 'rgba(255,255,255,0.1)' },
                 dataLabels: {
-                    show: true, name: { show: false },
-                    value: {
-                        show: true,
-                        fontSize: '20px',
-                        fontWeight: 'bold',
-                        offsetY: 8,
-                        formatter: (val) => val + '%',
-                        color: theme === 'dark' ? '#FFFFFF' : '#111827'
-                    }
+                    name: { show: false },
+                    value: { show: false } // عدد وسط رو نشون نمیدیم چون جا کمه، فقط دایره
                 }
             }
         },
         stroke: { lineCap: 'round' },
-        theme: { mode: theme }
+        tooltip: { enabled: false }
     };
 
     if (document.querySelector("#paid-chart")) {
-        var paidChart = new ApexCharts(document.querySelector("#paid-chart"), {...chartOptions, series: [paidPercentage], colors: ['#10B981']});
-        paidChart.render();
+        new ApexCharts(document.querySelector("#paid-chart"), {...chartOptions, series: [paidPercentage], colors: ['#34d399']}).render();
     }
     if (document.querySelector("#unpaid-chart")) {
-        var unpaidChart = new ApexCharts(document.querySelector("#unpaid-chart"), {...chartOptions, series: [unpaidPercentage], colors: ['#EF4444']});
-        unpaidChart.render();
+        new ApexCharts(document.querySelector("#unpaid-chart"), {...chartOptions, series: [unpaidPercentage], colors: ['#fb7185']}).render();
     }
 
-    // فعال‌سازی آیکون‌ها
     feather.replace();
 });
 
-// --- جاوااسکریپت مودال افزودن ---
+// --- Modal Logic ---
 const addModal = document.getElementById('addSubscriptionModal');
 const openAddModalBtn = document.getElementById('openAddModalBtn');
 const closeAddModalBtn = document.getElementById('closeAddModalBtn');
@@ -360,8 +449,10 @@ const closeAddModalBtn = document.getElementById('closeAddModalBtn');
 if (openAddModalBtn) {
     openAddModalBtn.onclick = function() {
         addModal.classList.remove('hidden');
-        // فعال‌سازی تقویم شمسی *بعد از* باز شدن مودال
-        // ما از تابع گلوبالی که در base.html تعریف کردیم استفاده می‌کنیم
+        const currentYear = $('#filter_year').val();
+        const currentMonth = $('#filter_month').val();
+        $('#id_year').val('{{ selected_year }}').trigger('change');
+        $('#id_month').val('{{ selected_month }}').trigger('change');
         window.initPersianDatepicker("#addSubscriptionModal .jalali-datepicker");
     }
 }
@@ -369,7 +460,7 @@ if (closeAddModalBtn) {
     closeAddModalBtn.onclick = function() { addModal.classList.add('hidden'); }
 }
 
-// --- جاوااسکریپت مودال حذف ---
+// --- Delete Modal Logic ---
 const deleteModal = document.getElementById('deleteModal');
 const deleteForm = document.getElementById('deleteForm');
 const customerNameSpan = document.getElementById('customerName');
@@ -385,17 +476,14 @@ function closeDeleteModal() {
     deleteModal.classList.add('hidden');
 }
 
-// --- بستن مودال‌ها با کلیک بیرونی ---
 window.addEventListener('click', function(event) {
     if (event.target == addModal) { addModal.classList.add('hidden'); }
     if (event.target == deleteModal) { closeDeleteModal(); }
 });
 
-// --- باز نگه داشتن مودال در صورت خطا ---
 {% if form.errors %}
     addModal.classList.remove('hidden');
     $(document).ready(function() {
-        // فعال‌سازی مجدد تقویم در صورت خطا
         window.initPersianDatepicker("#addSubscriptionModal .jalali-datepicker");
     });
 {% endif %}

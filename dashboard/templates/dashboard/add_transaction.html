@@ -1,208 +1,123 @@
-{% extends "dashboard/base.html" %}
+{% extends 'dashboard/base.html' %}
 {% load i18n %}
-{% load mathfilters %}
+{% load humanize %}
 
 {% block title %}{% trans "Manage Transactions" %}{% endblock %}
 {% block page_title %}{% trans "Manage Transactions" %}{% endblock %}
 
-{% block extra_head %}
-    {{ expense_form.media }}
-    {{ other_income_form.media }}
-
-    <style>
-        .action-btn {
-            display: inline-flex;
-            padding: 4px;
-            border-radius: 50%;
-            transition: background-color 0.2s;
-        }
-        .action-btn:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        .action-btn-edit {
-            color: var(--color-warning);
-        }
-        .action-btn-delete {
-            color: var(--color-danger);
-        }
-        .action-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-    </style>
-    {% endblock %}
-
 {% block content %}
 <div class="space-y-8">
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="glass-card p-6 md:p-8">
-            <h2 class="text-2xl font-bold mb-6 text-start flex items-center gap-2">
-                <i data-feather="plus-circle" class="text-green-400"></i>
-                <span>{% trans "Add Income (Server & Support)" %}</span>
-            </h2>
-            <form method="post" class="space-y-6 form-container text-start">
-                {% csrf_token %}
-                <div>{{ other_income_form.name.label_tag }}{{ other_income_form.name }}</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>{{ other_income_form.price.label_tag }}{{ other_income_form.price }}</div>
-                    <div>{{ other_income_form.deposit_date.label_tag }}{{ other_income_form.deposit_date }}</div>
-                </div>
-                <div>{{ other_income_form.description.label_tag }}{{ other_income_form.description }}</div>
-                <div class="pt-2">
-                    <button type="submit" name="add_other_income" class="w-full btn btn-gradient">{% trans "Add Income" %}</button>
-                </div>
-            </form>
+    {# --- کارت‌های نئونی (Stats Cards) --- #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-card p-6 relative overflow-hidden group hover:border-emerald-500/50 transition-all duration-300">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl"></div>
+            <div class="flex items-center gap-3 mb-2"><div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><i data-feather="arrow-up-circle"></i></div><span class="text-sm text-[var(--text-muted)] font-bold uppercase">{% trans "Total Income" %}</span></div>
+            <p class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">{{ total_income_monthly|intcomma }} <span class="text-sm text-[var(--text-muted)]">T</span></p>
         </div>
-
-        <div class="glass-card p-6 md:p-8">
-            <h2 class="text-2xl font-bold mb-6 text-start flex items-center gap-2">
-                <i data-feather="minus-circle" class="text-red-400"></i>
-                <span>{% trans "Add Daily Expense" %}</span>
-            </h2>
-            <form method="post" class="space-y-6 form-container text-start">
-                {% csrf_token %}
-                <div>{{ expense_form.issue.label_tag }}{{ expense_form.issue }}</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>{{ expense_form.price.label_tag }}{{ expense_form.price }}</div>
-                    <div>{{ expense_form.spending_date.label_tag }}{{ expense_form.spending_date }}</div>
-                </div>
-                <div>{{ expense_form.description.label_tag }}{{ expense_form.description }}</div>
-                <div class="pt-2">
-                    <label class="toggle-wrapper">
-                        {{ expense_form.is_server_cost }}
-                        <div class="toggle-switch"></div>
-                        <span class="font-medium text-[var(--text-secondary)]">{{ expense_form.is_server_cost.label }}</span>
-                    </label>
-                </div>
-                <div class="pt-4">
-                    <button type="submit" name="add_expense" class="w-full btn btn-gradient">{% trans "Add Expense" %}</button>
-                </div>
-            </form>
+        <div class="glass-card p-6 relative overflow-hidden group hover:border-red-500/50 transition-all duration-300">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl"></div>
+            <div class="flex items-center gap-3 mb-2"><div class="p-2 bg-red-500/10 rounded-lg text-red-500"><i data-feather="arrow-down-circle"></i></div><span class="text-sm text-[var(--text-muted)] font-bold uppercase">{% trans "Total Expense" %}</span></div>
+            <p class="text-3xl font-black text-red-400">{{ total_expenses_monthly|intcomma }} <span class="text-sm text-[var(--text-muted)]">T</span></p>
+        </div>
+        <div class="glass-card p-6 relative overflow-hidden group hover:border-blue-500/50 transition-all duration-300">
+            <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl"></div>
+            <div class="flex items-center gap-3 mb-2"><div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-feather="pie-chart"></i></div><span class="text-sm text-[var(--text-muted)] font-bold uppercase">{% trans "Net Profit" %}</span></div>
+            <p class="text-3xl font-black text-[var(--text-main)]" dir="ltr">{{ net_profit_monthly|intcomma }} <span class="text-sm text-[var(--text-muted)]">T</span></p>
         </div>
     </div>
 
+    {# --- فیلترها (دکمه Show اصلاح شده) --- #}
     <div class="glass-card p-6">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <h3 class="text-xl font-bold text-start">{% trans "Monthly Stats" %}</h3>
-            <form method="get" id="filter-form" class="flex items-center gap-2">
-                <select name="month" class="form-input">
-                    {% for month_num, month_name in months.items %}
-                        <option value="{{ month_num }}" {% if selected_month == month_num|stringformat:"s" %}selected{% endif %}>{{ month_name }}</option>
-                    {% endfor %}
-                </select>
-                <select name="year" class="form-input">
-                    {% for year in years %}
-                        <option value="{{ year }}" {% if selected_year == year|stringformat:"s" %}selected{% endif %}>{{ year }}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="btn btn-primary">{% trans "Show" %}</button>
+        <form method="get" class="flex flex-col sm:flex-row items-end gap-4">
+            <div class="w-full sm:w-48"><label class="block text-sm font-bold text-[var(--text-muted)] mb-1">{% trans "Year" %}</label><select name="year" class="form-select select2-enable">{% for y in years %}<option value="{{ y }}" {% if y|stringformat:"s" == selected_year %}selected{% endif %}>{{ y }}</option>{% endfor %}</select></div>
+            <div class="w-full sm:w-48"><label class="block text-sm font-bold text-[var(--text-muted)] mb-1">{% trans "Month" %}</label><select name="month" class="form-select select2-enable">{% for m_num, m_name in months.items %}<option value="{{ m_num }}" {% if m_num|stringformat:"s" == selected_month %}selected{% endif %}>{{ m_name }}</option>{% endfor %}</select></div>
+            <button type="submit" class="btn-filter w-full sm:w-auto"><i data-feather="filter" class="inline w-4 h-4 mr-1"></i> {% trans "Show" %}</button>
+        </form>
+    </div>
+
+    {# --- فرم‌ها --- #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="glass-card p-6 border-t-4 border-red-500">
+            <h3 class="text-lg font-bold text-red-500 mb-4 flex items-center gap-2"><i data-feather="minus-circle"></i> {% trans "Add Expense" %}</h3>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="add_expense" value="1">
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Spending Date (Shamsi)" %}</label><input type="text" name="expense-spending_date" class="form-input jalali-datepicker" autocomplete="off"></div>
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Issue" %}</label>{{ expense_form.issue }}</div>
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Price" %}</label>{{ expense_form.price }}</div>
+                <div class="flex items-center justify-between py-2"><span class="text-sm text-[var(--text-main)]">{% trans "Is it a server cost?" %}</span><label class="switch form-switch"><input type="checkbox" name="expense-is_server_cost"><span class="switch-slider"></span></label></div>
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Description" %}</label>{{ expense_form.description }}</div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition-colors">{% trans "Add Expense" %}</button>
             </form>
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-            <div class="bg-[var(--bg-secondary)]/50 p-4 rounded-lg">
-                <h4 class="text-sm font-semibold text-[var(--text-secondary)]">{% trans "Total Income" %}</h4>
-                <p class="text-2xl font-bold text-success">{{ total_income_monthly|floatformat:0 }}</p>
-            </div>
-            <div class="bg-[var(--bg-secondary)]/50 p-4 rounded-lg">
-                <h4 class="text-sm font-semibold text-[var(--text-secondary)]">{% trans "Total Expenses" %}</h4>
-                <p class="text-2xl font-bold text-danger">{{ total_expenses_monthly|floatformat:0 }}</p>
-            </div>
-            <div class="bg-[var(--bg-secondary)]/50 p-4 rounded-lg">
-                <h4 class="text-sm font-semibold text-[var(--text-secondary)]">{% trans "Net Profit" %}</h4>
-                <p class="text-2xl font-bold {% if net_profit_monthly >= 0 %}text-success{% else %}text-danger{% endif %}">{{ net_profit_monthly|floatformat:0 }}</p>
-            </div>
-            <div class="bg-[var(--bg-secondary)]/50 p-4 rounded-lg">
-                <h4 class="text-sm font-semibold text-[var(--text-secondary)]">{% trans "Server Costs" %}</h4>
-                <p class="text-2xl font-bold text-warning">{{ server_costs_monthly|floatformat:0 }}</p>
-            </div>
+        <div class="glass-card p-6 border-t-4 border-emerald-500">
+            <h3 class="text-lg font-bold text-emerald-500 mb-4 flex items-center gap-2"><i data-feather="plus-circle"></i> {% trans "Add Other Income" %}</h3>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="add_other_income" value="1">
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Deposit Date (Shamsi)" %}</label><input type="text" name="income-deposit_date" class="form-input jalali-datepicker" autocomplete="off"></div>
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Depositor Name" %}</label>{{ other_income_form.name }}</div>
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Price" %}</label>{{ other_income_form.price }}</div>
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Description" %}</label>{{ other_income_form.description }}</div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-colors">{% trans "Add Income" %}</button>
+            </form>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="glass-card p-6 lg:col-span-1">
-            <h3 class="text-xl font-bold mb-4 text-start">{% trans "Incomes List" %}</h3>
-            <div class="max-h-96 overflow-y-auto pr-2">
-                <ul class="space-y-2">
-                    {% for income in incomes_list %}
-                        <li class="flex justify-between items-center bg-[var(--bg-secondary)]/50 p-3 rounded">
-                             <div class="flex-1 min-w-0"> <span class="font-bold block truncate">{{ income.name }}</span> <span class="text-sm text-[var(--text-secondary)] block">{{ income.jalali_deposit_date }}</span>
-                            </div>
-                            <span class="font-bold text-success mr-2">{{ income.price|floatformat:0 }}</span> <div class="flex items-center gap-1 flex-shrink-0">
-                                <a href="{% url 'dashboard:other_income_edit' income.id %}?year={{ selected_year }}&month={{ selected_month }}"
-                                   class="action-btn action-btn-edit"
-                                   title="{% trans 'Edit' %}">
-                                    <i data-feather="edit-2"></i>
-                                </a>
-                                <form method="post" action="{% url 'dashboard:delete_other_income' income.id %}" class="inline-block" onsubmit="return confirm('{% trans "Are you sure you want to delete this income?" %}');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="year" value="{{ selected_year }}">
-                                    <input type="hidden" name="month" value="{{ selected_month }}">
-                                    <button type="submit" class="action-btn action-btn-delete" title="{% trans 'Delete' %}">
-                                        <i data-feather="trash-2"></i>
-                                    </button>
-                                </form>
-                            </div>
-                            </li>
-                    {% empty %}
-                        <p class="text-[var(--text-secondary)] text-center py-4">{% trans "No income recorded for this month." %}</p>
-                    {% endfor %}
-                </ul>
+    {# --- لیست‌ها (با دکمه‌های رنگی و مودال حذف) --- #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-bold text-[var(--text-main)] mb-4">{% trans "Monthly Expenses" %}</h3>
+            <div class="overflow-x-auto">
+                <table class="custom-table w-full text-sm">
+                    <thead><tr><th>{% trans "Issue" %}</th><th>{% trans "Price" %}</th><th>{% trans "Date" %}</th><th>{% trans "Actions" %}</th></tr></thead>
+                    <tbody>
+                        {% for expense in expenses_list %}
+                        <tr>
+                            <td>{{ expense.issue }}</td><td class="text-red-400">{{ expense.price|intcomma }}</td><td>{{ expense.jalali_spending_date }}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <a href="{% url 'dashboard:expense_edit' expense.pk %}" class="text-blue-400 hover:text-blue-500"><i data-feather="edit-2" class="w-4 h-4"></i></a>
+                                    <button type="button" class="text-red-400 hover:text-red-500" data-url="{% url 'dashboard:delete_expense' expense.pk %}" data-name="{{ expense.issue }}" data-year="{{ selected_year }}" data-month="{{ selected_month }}" onclick="openDeleteModal(this)"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}<tr><td colspan="4" class="text-center p-4 text-[var(--text-muted)]">{% trans "No expenses" %}</td></tr>{% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-
-        <div class="glass-card p-6 lg:col-span-1">
-            <h3 class="text-xl font-bold mb-4 text-start">{% trans "Expenses List" %}</h3>
-            <div class="max-h-96 overflow-y-auto pr-2">
-                <ul class="space-y-2">
-                    {% for expense in expenses_list %}
-                        <li class="flex justify-between items-center bg-[var(--bg-secondary)]/50 p-3 rounded">
-                            <div class="flex-1 min-w-0"> <span class="font-bold block truncate">{{ expense.issue }}</span> <span class="text-sm text-[var(--text-secondary)] block">{{ expense.jalali_spending_date }}</span>
-                            </div>
-                            <span class="font-bold text-danger mr-2">{{ expense.price|floatformat:0 }}</span> <div class="flex items-center gap-1 flex-shrink-0">
-                                <a href="{% url 'dashboard:expense_edit' expense.id %}?year={{ selected_year }}&month={{ selected_month }}"
-                                   class="action-btn action-btn-edit"
-                                   title="{% trans 'Edit' %}">
-                                    <i data-feather="edit-2"></i>
-                                </a>
-                                <form method="post" action="{% url 'dashboard:delete_expense' expense.id %}" class="inline-block" onsubmit="return confirm('{% trans "Are you sure you want to delete this expense?" %}');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="year" value="{{ selected_year }}">
-                                    <input type="hidden" name="month" value="{{ selected_month }}">
-                                    <button type="submit" class="action-btn action-btn-delete" title="{% trans 'Delete' %}">
-                                        <i data-feather="trash-2"></i>
-                                    </button>
-                                </form>
-                            </div>
-                            </li>
-                    {% empty %}
-                        <p class="text-[var(--text-secondary)] text-center py-4">{% trans "No expense recorded for this month." %}</p>
-                    {% endfor %}
-                </ul>
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-bold text-[var(--text-main)] mb-4">{% trans "Monthly Incomes" %}</h3>
+            <div class="overflow-x-auto">
+                <table class="custom-table w-full text-sm">
+                    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Price" %}</th><th>{% trans "Date" %}</th><th>{% trans "Actions" %}</th></tr></thead>
+                    <tbody>
+                        {% for income in incomes_list %}
+                        <tr>
+                            <td>{{ income.name }}</td><td class="text-emerald-400">{{ income.price|intcomma }}</td><td>{{ income.jalali_deposit_date }}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <a href="{% url 'dashboard:other_income_edit' income.pk %}" class="text-blue-400 hover:text-blue-500"><i data-feather="edit-2" class="w-4 h-4"></i></a>
+                                    <button type="button" class="text-red-400 hover:text-red-500" data-url="{% url 'dashboard:delete_other_income' income.pk %}" data-name="{{ income.name }}" data-year="{{ selected_year }}" data-month="{{ selected_month }}" onclick="openDeleteModal(this)"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}<tr><td colspan="4" class="text-center p-4 text-[var(--text-muted)]">{% trans "No incomes" %}</td></tr>{% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </div>
-
-        <div class="glass-card p-6 lg:col-span-1">
-            <h3 class="text-xl font-bold mb-4 text-start">{% trans "Top Spending Categories" %}</h3>
-            <ul class="space-y-3">
-                {% for expense in top_spending_monthly %}
-                    <li class="text-start">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-semibold">{{ expense.issue }} ({{ expense.count }}x)</span>
-                            <span class="text-sm text-[var(--text-secondary)]">{{ expense.total|floatformat:0 }}</span>
-                        </div>
-                        {% if total_expenses_monthly > 0 %}
-                        <div class="w-full bg-[var(--bg-secondary)] rounded-full h-2.5">
-                            <div class="bg-purple-600 h-2.5 rounded-full" style="width: {% widthratio expense.total total_expenses_monthly 100 %}%"></div>
-                        </div>
-                        {% endif %}
-                    </li>
-                {% empty %}
-                    <p class="text-[var(--text-secondary)] text-center py-4">{% trans "No expenses to analyze." %}</p>
-                {% endfor %}
-            </ul>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        window.initPersianDatepicker(".jalali-datepicker");
+        $('.select2-enable').select2({ theme: "classic", width: '100%', dir: document.documentElement.dir });
+    });
+</script>
 {% endblock %}

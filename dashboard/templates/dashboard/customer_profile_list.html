@@ -1,145 +1,46 @@
-{% extends "dashboard/base.html" %}
+{% extends 'dashboard/base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Customers" %}{% endblock %}
+{% block title %}{% trans "Customers Management" %}{% endblock %}
 {% block page_title %}{% trans "Customers Management" %}{% endblock %}
-{% block page_title_desktop %}{% trans "Customer Management" %}{% endblock %}
 
 {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
     <div class="lg:col-span-1">
-        <div class="glass-card p-6 md:p-8">
-            <h2 class="text-2xl font-bold mb-6 text-start flex items-center gap-2">
-                <i data-feather="user-plus" class="text-blue-400"></i>
-                <span>{% trans "Add New Customer" %}</span>
-            </h2>
-            <form method="post" class="space-y-6 form-container text-start">
-                {% csrf_token %}
-                <div>
-                    {{ form.name.label_tag }}
-                    {{ form.name }}
-                </div>
-                <div>
-                    {{ form.phone_number.label_tag }}
-                    {{ form.phone_number }}
-                </div>
-                <div>
-                    {{ form.referred_by.label_tag }}
-                    {{ form.referred_by }}
-                </div>
-                <div class="pt-2">
-                    <button type="submit" class="w-full btn btn-gradient">{% trans "Create Customer" %}</button>
-                </div>
-            </form>
+        <div class="glass-card p-6 sticky top-6">
+            <h2 class="text-lg font-bold text-[var(--text-main)] mb-4 flex items-center gap-2"><i data-feather="user-plus" class="text-purple-500"></i> {% trans "Add New Customer" %}</h2>
+            <form method="post" class="space-y-4">{% csrf_token %}{% for field in form %}<div><label class="block text-sm text-[var(--text-muted)] mb-1">{{ field.label }}</label>{{ field }}{% if field.errors %}<p class="text-red-400 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}</div>{% endfor %}<button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition-colors">{% trans "Save Customer" %}</button></form>
         </div>
     </div>
 
     <div class="lg:col-span-2">
         <div class="glass-card p-6">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                <h2 class="text-xl font-bold">{% trans "Customers List" %}</h2>
-                <form method="get" class="flex items-center gap-2 w-full md:w-auto">
-                    <input type="search" name="q" value="{{ search_query|default:'' }}" placeholder="{% trans 'Search by name...' %}" class="form-input w-full">
-                    <button type="submit" class="btn btn-primary">{% trans "Search" %}</button>
-                </form>
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                <h2 class="text-xl font-bold text-[var(--text-main)]">{% trans "Customer List" %}</h2>
+                <form method="get" class="w-full sm:w-1/2 relative"><input type="text" name="q" value="{{ request.GET.q }}" placeholder="{% trans "Search customers..." %}" class="form-input pl-10"><i data-feather="search" class="absolute left-3 top-3 w-4 h-4 text-[var(--text-muted)]"></i></form>
             </div>
-            <div class="flex justify-end items-center mb-4">
-                 <span class="badge badge-primary">{{ customer_count }} {% trans "Customers" %}</span>
-            </div>
-
             <div class="overflow-x-auto">
-                <table class="w-full text-start">
-                    <thead>
-                        <tr class="border-b border-[var(--border-color)]">
-                            <th class="p-3 text-start">{% trans "Full Name" %}</th>
-                            <th class="p-3 text-start">{% trans "Phone Number" %}</th>
-                            <th class="p-3 text-start">{% trans "Introduced by" %}</th>
-                            <th class="p-3 text-center">{% trans "Actions" %}</th>
-                        </tr>
-                    </thead>
+                <table class="custom-table w-full text-sm">
+                    <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Phone" %}</th><th>{% trans "Referrer" %}</th><th>{% trans "Actions" %}</th></tr></thead>
                     <tbody>
                         {% for customer in customers %}
-                        <tr class="border-b border-[var(--border-color)] hover:bg-[var(--glass-bg)] transition-colors duration-200">
-                            <td class="p-3 font-semibold">{{ customer.name }}</td>
-                            <td class="p-3">{{ customer.phone_number|default:"-" }}</td>
-                            <td class="p-3">{{ customer.referred_by.name|default:"-" }}</td>
-                            <td class="p-3 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a href="{% url 'dashboard:edit_customer_profile' customer.id %}" class="font-semibold text-[var(--accent)] hover:underline">{% trans "Edit" %}</a>
-                                    <span class="text-[var(--text-secondary)]">|</span>
-                                    <button type="button"
-                                            data-url="{% url 'dashboard:delete_customer_profile' customer.id %}"
-                                            data-name="{{ customer.name }}"
-                                            onclick="openDeleteModal(this.dataset.url, this.dataset.name)"
-                                            class="font-semibold text-danger hover:underline">
-                                        {% trans "Delete" %}
-                                    </button>
+                        {% if not request.GET.q or request.GET.q|lower in customer.name|lower %}
+                        <tr>
+                            <td class="font-bold">{{ customer.name }}</td><td class="text-[var(--text-muted)]">{{ customer.phone_number|default:"-" }}</td><td>{{ customer.referred_by.name|default:"-" }}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <a href="{% url 'dashboard:edit_customer_profile' customer.pk %}" class="text-blue-400 hover:text-blue-500"><i data-feather="edit-2" class="w-4 h-4"></i></a>
+                                    <button type="button" class="text-red-400 hover:text-red-500" data-url="{% url 'dashboard:delete_customer_profile' customer.pk %}" data-name="{{ customer.name }}" onclick="openDeleteModal(this)"><i data-feather="trash-2" class="w-4 h-4"></i></button>
                                 </div>
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="p-6 text-center text-[var(--text-secondary)]">
-                                {% if search_query %}
-                                    {% blocktrans %}No customer found matching "{{ search_query }}".{% endblocktrans %}
-                                {% else %}
-                                    {% trans "No customers found." %}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
+                        {% endif %}
+                        {% empty %}<tr><td colspan="4" class="text-center p-4">{% trans "No customers found." %}</td></tr>{% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
-
-<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
-    <div class="glass-card p-8 rounded-lg shadow-xl w-full max-w-md">
-        <h2 class="text-xl font-bold mb-4">{% trans "Confirm Deletion" %}</h2>
-        <p class="mb-6">{% blocktrans %}Are you sure you want to delete the customer <strong id="customerName"></strong>? All subscriptions related to this customer will also be deleted.{% endblocktrans %}</p>
-        <form id="deleteForm" method="post">
-            {% csrf_token %}
-            <div class="flex justify-end gap-4">
-                <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">{% trans "Cancel" %}</button>
-                <button type="submit" class="btn btn-danger">{% trans "Yes, Delete" %}</button>
-            </div>
-        </form>
-    </div>
-</div>
 {% endblock %}
-
-{% block extra_scripts %}
-<script>
-$(document).ready(function() {
-    $('#id_referred_by').select2({
-        theme: "classic",
-        placeholder: "{% trans 'Select a referrer...' %}",
-        allowClear: true
-    });
-});
-
-// Delete Modal Logic
-const deleteModal = document.getElementById('deleteModal');
-const deleteForm = document.getElementById('deleteForm');
-const customerNameSpan = document.getElementById('customerName');
-
-function openDeleteModal(url, customerName) {
-    deleteForm.action = url;
-    customerNameSpan.textContent = customerName;
-    deleteModal.classList.remove('hidden');
-}
-
-function closeDeleteModal() {
-    deleteModal.classList.add('hidden');
-}
-
-window.onclick = function(event) {
-    if (event.target == deleteModal) {
-        closeDeleteModal();
-    }
-}
-</script>
-{% endblock %}
+{% block extra_scripts %}<script>$(document).ready(function(){$('select').select2({theme:"classic",width:'100%',dir:document.documentElement.dir});});</script>{% endblock %}

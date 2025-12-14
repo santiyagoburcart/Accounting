@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'dashboard',
     'mathfilters',
     'django_filters',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [
@@ -117,11 +118,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'fa-ir'
+LANGUAGE_CODE = 'en-us'  # <--- تغییر به انگلیسی
 
 LANGUAGES = [
+    ('en', _('English')), # انگلیسی اول باشه
     ('fa', _('Persian')),
-    ('en', _('English')),
 ]
 
 LOCALE_PATHS = [

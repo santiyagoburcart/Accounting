@@ -13,7 +13,7 @@
 </head>
 <body data-theme="dark" class="bg-[var(--bg-primary)] text-[var(--text-primary)]">
 
-    <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="min-h-screen flex items-center justify-center p-4 bg-[var(--bg-body)]">
 
         <div class="w-full max-w-4xl flex flex-col lg:flex-row rounded-2xl overflow-hidden glass-card-solid">
 
@@ -44,13 +44,35 @@
                     </div>
 
                     <div>
-                        <label for="{{ form.password.id_for_label }}" class="form-label">{{ form.password.label }}</label>
+                        <label for="{{ form.password.id_for_label }}" class="form-label font-bold text-sm mb-1 block">{{ form.password.label }}</label>
                         <div class="relative mt-2">
-                            <span class="form-icon"><i data-feather="lock"></i></span>
+                            <span class="form-icon">
+                                <i data-feather="lock" class="w-5 h-5"></i>
+                            </span>
                             {{ form.password }}
+                            <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility(this)" title="{% trans 'Show Password' %}">
+                                <i data-feather="eye" class="w-5 h-5"></i>
+                            </button>
                         </div>
                     </div>
-
+                    <script>
+                        function togglePasswordVisibility(btn) {
+                            // پیدا کردن اینپوت کنار دکمه
+                            const container = btn.parentElement;
+                            const input = container.querySelector('input');
+                            const icon = btn.querySelector('i');
+                            if (input.type === "password") {
+                                input.type = "text"; // نمایش رمز
+                                // تغییر آیکون به چشم خط‌خورده (Eye Off)
+                                icon.setAttribute('data-feather', 'eye-off');
+                            } else {
+                                input.type = "password"; // مخفی کردن رمز
+                                // تغییر آیکون به چشم باز (Eye)
+                                icon.setAttribute('data-feather', 'eye');
+                            }
+                            feather.replace(); // رفرش کردن آیکون‌های Feather
+                        }
+                    </script>
                     <div class="flex items-center justify-between">
                         <label class="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">
                             <input type="checkbox" name="remember" class="form-checkbox">

@@ -1,196 +1,266 @@
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+{% get_current_language as LANGUAGE_CODE %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE }}" dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr' }}" class="{% if request.user.profile.theme == 'dark' %}dark{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{% endblock %} | AP Accounting</title>
+    <title>{% block title %}{% trans "Dashboard" %}{% endblock %} | AP Accounting</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { dark: { bg: '#0f172a', card: '#1e293b' } }, fontFamily: { vazir: ['Vazirmatn', 'sans-serif'] } }
+            }
+        }
+    </script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css"/>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="icon" href="{% static 'images/favicon.svg' %}" type="image/svg+xml">
-
     <script src="https://unpkg.com/feather-icons"></script>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body data-theme="{{ request.user.profile.theme|default:'dark' }}" class="bg-[var(--bg-primary)]">
+<body class="bg-[var(--bg-body)] text-[var(--text-main)] font-vazir overflow-hidden transition-colors duration-300" data-theme="{{ request.user.profile.theme|default:'light' }}">
 
     <div class="flex h-screen">
-        <aside id="sidebar" class="w-64 -translate-x-full md:translate-x-0 fixed md:static inset-y-0 left-0 bg-[var(--bg-secondary)] z-30 transition-transform duration-300 ease-in-out flex flex-col text-[var(--text-primary)]">
-            <div class="p-4 flex items-center justify-center border-b border-[var(--border-color)]">
-                <a href="{% url 'dashboard:subscription_dashboard' %}" class="flex items-center gap-2">
-                    <span class="text-2xl font-bold">AP Accounting</span>
+
+        <aside id="sidebar" class="w-64 fixed md:static inset-y-0 {% if LANGUAGE_BIDI %}right-0 border-l{% else %}left-0 border-r{% endif %} z-40 bg-[var(--bg-sidebar)] border-[var(--border-color)] transform {% if LANGUAGE_BIDI %}translate-x-full{% else %}-translate-x-full{% endif %} md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-2xl">
+
+            <div class="h-20 flex items-center justify-center border-b border-[var(--border-color)] relative">
+                <a href="{% url 'dashboard:subscription_dashboard' %}" class="flex items-center gap-3 text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 hover:scale-105 transition-transform">
+                    <i data-feather="hexagon" class="text-purple-500 fill-purple-500/20"></i>
+                    AP Accounting
                 </a>
             </div>
 
-            {# **تغییر**: آیکون‌ها به لینک‌ها اضافه شدند و لینک جدید در اینجا قرار گرفت #}
-            <nav class="p-4 space-y-2 flex-1">
-                <a href="{% url 'dashboard:financial_report' %}" class="nav-link {% if request.resolver_match.url_name == 'financial_report' %}active{% endif %}">
-                    <i data-feather="pie-chart"></i>
-                    <span>{% trans "Financial Report" %}</span>
-                </a>
-                <a href="{% url 'dashboard:subscription_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'subscription_dashboard' %}active{% endif %}">
-                    <i data-feather="trello"></i>
-                    <span>{% trans "Subscriptions" %}</span>
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
+                <p class="px-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 opacity-70">{% trans "Main Menu" %}</p>
+
+                <a href="{% url 'dashboard:subscription_dashboard' %}"
+                   class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if 'subscription' in request.path %}active{% endif %}">
+                    <i data-feather="grid"></i><span>{% trans "Dashboard" %}</span>
                 </a>
 
-                <a href="{% url 'dashboard:add_transaction' %}" class="nav-link {% if request.resolver_match.url_name == 'add_transaction' %}active{% endif %}">
-                    <i data-feather="plus-circle"></i>
-                    <span>{% trans "Add Transaction" %}</span>
+                <a href="{% url 'dashboard:financial_report' %}"
+                   class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if 'financial-report' in request.path %}active{% endif %}">
+                    <i data-feather="pie-chart"></i><span>{% trans "Financial Report" %}</span>
                 </a>
 
-                <a href="{% url 'dashboard:customer_profile_list' %}" class="nav-link {% if request.resolver_match.url_name == 'customer_profile_list' %}active{% endif %}">
-                    <i data-feather="users"></i>
-                    <span>{% trans "Customers" %}</span>
+                <a href="{% url 'dashboard:add_transaction' %}"
+                   class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if 'transaction' in request.path %}active{% endif %}">
+                    <i data-feather="plus-circle"></i><span>{% trans "Add Transaction" %}</span>
                 </a>
-                <a href="{% url 'dashboard:bank_account_list' %}" class="nav-link {% if request.resolver_match.url_name == 'bank_account_list' %}active{% endif %}">
-                    <i data-feather="briefcase"></i>
-                    <span>{% trans "Bank Accounts" %}</span>
-                </a>
-            </nav>
 
-            <div class="p-4 border-t border-[var(--border-color)]">
-                <div class="flex items-center justify-between mb-4">
-                    <span>{% trans "Toggle Theme" %}</span>
-                    <label class="switch">
-                        <input type="checkbox" id="theme-toggle" {% if request.user.profile.theme == 'light' %}checked{% endif %}>
-                        <span class="slider round"></span>
+                <div class="my-4 border-t border-[var(--border-color)] opacity-50"></div>
+
+                <p class="px-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 opacity-70">{% trans "Management" %}</p>
+
+                <a href="{% url 'dashboard:customer_profile_list' %}"
+                   class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if 'customer' in request.path %}active{% endif %}">
+                    <i data-feather="users"></i><span>{% trans "Customers" %}</span>
+                </a>
+
+                <a href="{% url 'dashboard:bank_account_list' %}"
+                   class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if 'bank-account' in request.path %}active{% endif %}">
+                    <i data-feather="credit-card"></i><span>{% trans "Bank Accounts" %}</span>
+                </a>
+
+                {% if user.is_superuser %}
+                <a href="{% url 'dashboard:backup_panel' %}"
+                   class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if 'backup' in request.path %}active{% endif %}">
+                    <i data-feather="database"></i><span>{% trans "Backup & Restore" %}</span>
+                </a>
+                {% endif %}
+                </nav>
+
+            <div class="p-4 bg-[var(--bg-body)]/30 backdrop-blur-md border-t border-[var(--border-color)]">
+
+                <div class="flex items-center justify-between mb-4 gap-2">
+                    <form action="{% url 'set_language' %}" method="post" class="flex-1">
+                        {% csrf_token %}
+                        <input name="next" type="hidden" value="{{ redirect_to }}">
+                        <select name="language" class="w-full bg-[var(--input-bg)] text-[var(--text-main)] text-xs border border-[var(--border-color)] rounded-lg py-1 px-2 focus:ring-1 focus:ring-purple-500 cursor-pointer" onchange="this.form.submit()">
+                            {% get_available_languages as LANGUAGES %}{% get_language_info_list for LANGUAGES as languages %}
+                            {% for language in languages %}
+                                <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %}selected{% endif %}>
+                                    {{ language.name_local|slice:":3"|upper }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+
+                    <label class="relative inline-flex items-center cursor-pointer" title="{% trans 'Toggle Theme' %}">
+                        <input type="checkbox" id="theme-toggle" class="sr-only peer" {% if request.user.profile.theme == 'dark' %}checked{% endif %}>
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
                     </label>
                 </div>
-                <div class="flex items-center gap-3">
-                    <a href="{% url 'dashboard:profile' %}">
-                        <img src="{{ request.user.profile.avatar.url }}" alt="Avatar" class="w-10 h-10 rounded-full">
+
+                <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--bg-card)] transition-colors cursor-pointer group">
+                    <a href="{% url 'dashboard:profile' %}" class="relative">
+                        {% if request.user.profile.avatar %}
+                            <img src="{{ request.user.profile.avatar.url }}" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-purple-500 object-cover">
+                        {% else %}
+                            <div class="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold shadow-lg shadow-purple-500/30">{{ request.user.username|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[var(--bg-sidebar)] rounded-full"></span>
                     </a>
-                    <div class="flex-1">
-                        <a href="{% url 'dashboard:profile' %}" class="font-semibold hover:underline">{{ request.user.username }}</a>
-                    </div>
-                    <div>
-                        <form action="{% url 'logout' %}" method="post">
+
+                    <div class="flex-1 min-w-0">
+                        <a href="{% url 'dashboard:profile' %}" class="block text-sm font-bold text-[var(--text-main)] truncate group-hover:text-purple-500 transition-colors">
+                            {{ request.user.username }}
+                        </a>
+                        <form action="{% url 'logout' %}" method="post" class="inline">
                             {% csrf_token %}
-                            <button type="submit" class="text-sm text-danger hover:underline">{% trans "Logout" %}</button>
+                            <button type="submit" class="text-[10px] text-red-400 hover:text-red-500 font-medium uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                                <i data-feather="log-out" class="w-3 h-3"></i> {% trans "Logout" %}
+                            </button>
                         </form>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <div class="flex-1 flex flex-col">
-            <header class="flex-shrink-0 flex justify-between items-center p-4 border-b border-[var(--border-color)] bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-sm">
-                <button id="menu-toggle" class="md:hidden p-2 rounded-md hover:bg-[var(--border-color)]">
-                    <i data-feather="menu"></i>
-                </button>
-                <h1 class="text-xl font-bold hidden md:block">{% block page_title_desktop %}{% endblock %}</h1>
-                <h1 class="text-lg font-bold md:hidden">{% block page_title %}{% endblock %}</h1>
-                <div></div>
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+
+            <header class="md:hidden flex items-center justify-between p-4 border-b border-[var(--border-color)] bg-[var(--bg-sidebar)]">
+                <div class="flex items-center gap-3">
+                    <button id="menu-toggle" class="text-[var(--text-main)] p-2 rounded-lg hover:bg-[var(--bg-body)]">
+                        <i data-feather="menu"></i>
+                    </button>
+                    <span class="font-bold text-lg text-[var(--text-main)]">AP Accounting</span>
+                </div>
+                <a href="{% url 'dashboard:profile' %}" class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                    {{ request.user.username|slice:":1"|upper }}
+                </a>
             </header>
 
-            <main class="flex-1 overflow-y-auto p-4 sm:p-6">
-                <div class="max-w-7xl mx-auto w-full">
+            <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden glass-card rounded-none border-0 backdrop-blur-sm transition-opacity"></div>
+
+            <main class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth bg-[url('{% static "images/bg-pattern.svg" %}')] bg-fixed bg-cover">
+                <div class="max-w-7xl mx-auto w-full pb-20">
+                    <div class="hidden md:flex justify-between items-end mb-8">
+                        <div>
+                            <h1 class="text-3xl font-black text-[var(--text-main)] tracking-tight">{% block page_title %}{% endblock %}</h1>
+                            <p class="text-[var(--text-muted)] text-sm mt-1">{% block page_subtitle %}{% endblock %}</p>
+                        </div>
+                        <div class="text-sm font-medium text-[var(--text-muted)] bg-[var(--bg-card)] px-4 py-2 rounded-full border border-[var(--border-color)] shadow-sm">
+                            📅 <span id="current-date-display"></span>
+                        </div>
+                    </div>
+
                     {% block content %}{% endblock %}
                 </div>
             </main>
         </div>
     </div>
 
+    <div id="globalDeleteModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card p-8 w-full max-w-md text-center border border-[var(--border-color)] shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 shadow-lg shadow-red-500/20">
+                <i data-feather="trash-2" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-xl font-bold mb-2 text-[var(--text-main)]">{% trans "Confirm Deletion" %}</h2>
+            <p class="mb-6 text-[var(--text-muted)]">{% trans "Are you sure you want to delete" %} <strong id="deleteItemName" class="text-[var(--text-main)]"></strong>? <br>{% trans "This action cannot be undone." %}</p>
+            <form id="globalDeleteForm" method="post" action="">
+                {% csrf_token %}
+                <div id="deleteExtraFields"></div>
+                <div class="flex justify-center gap-4">
+                    <button type="button" onclick="closeGlobalDeleteModal()" class="px-6 py-2.5 rounded-xl border border-[var(--border-color)] text-[var(--text-muted)] hover:bg-[var(--bg-body)] hover:text-[var(--text-main)] transition-colors font-medium">{% trans "Cancel" %}</button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:shadow-lg hover:shadow-red-500/30 transition-all transform hover:-translate-y-0.5 font-bold">{% trans "Yes, Delete" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
     <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
 
     <script>
-        // فعال‌سازی آیکون‌ها
         feather.replace();
 
-        $(document).ready(function() {
-            // منطق مربوط به تم و سایدبار (بدون تغییر)
-            const themeToggle = document.getElementById('theme-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const menuToggle = document.getElementById('menu-toggle');
+        // 1. Datepicker Init
+        window.initPersianDatepicker = function(selector) {
+            $(selector).persianDatepicker({
+                format: 'YYYY/MM/DD', autoClose: true, initialValue: false, observer: true, persianDigit: false,
+                responsive: false, toolbox: { calendarSwitch: { enabled: false } }
+            });
+        };
 
+        // 2. Global Delete Modal
+        const globalDeleteModal = document.getElementById('globalDeleteModal');
+        const globalDeleteForm = document.getElementById('globalDeleteForm');
+        const deleteItemName = document.getElementById('deleteItemName');
+        const deleteExtraFields = document.getElementById('deleteExtraFields');
+
+        window.openDeleteModal = function(button) {
+            const url = button.dataset.url;
+            const name = button.dataset.name;
+            const year = button.dataset.year;
+            const month = button.dataset.month;
+
+            globalDeleteForm.action = url;
+            deleteItemName.textContent = name;
+
+            deleteExtraFields.innerHTML = '';
+            if(year) deleteExtraFields.innerHTML += `<input type="hidden" name="year" value="${year}">`;
+            if(month) deleteExtraFields.innerHTML += `<input type="hidden" name="month" value="${month}">`;
+
+            globalDeleteModal.classList.remove('hidden');
+        }
+
+        window.closeGlobalDeleteModal = function() { globalDeleteModal.classList.add('hidden'); }
+
+        // 3. Mobile Sidebar
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        function toggleSidebar() {
+            const isRtl = document.documentElement.dir === 'rtl';
+            sidebar.classList.toggle(isRtl ? 'translate-x-full' : '-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+        if(menuToggle){ menuToggle.addEventListener('click', toggleSidebar); overlay.addEventListener('click', toggleSidebar); }
+
+        // 4. Theme Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        if(themeToggle) {
             themeToggle.addEventListener('change', function() {
-                const theme = this.checked ? 'light' : 'dark';
-                document.body.setAttribute('data-theme', theme);
-
-                $.ajax({
-                    url: "{% url 'dashboard:set_theme' %}",
-                    type: "POST",
-                    data: { 'theme': theme, 'csrfmiddlewaretoken': '{{ csrf_token }}' }
-                });
+                const theme = this.checked ? 'dark' : 'light';
+                if(theme==='dark'){document.documentElement.classList.add('dark');document.body.setAttribute('data-theme','dark')}else{document.documentElement.classList.remove('dark');document.body.setAttribute('data-theme','light')}
+                $.ajax({ url: "{% url 'dashboard:set_theme' %}", type: "POST", data: { 'theme': theme, 'csrfmiddlewaretoken': '{{ csrf_token }}' } });
             });
+        }
 
-            if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('-translate-x-full');
-                });
-            }
+        // 5. Select2 Init
+        $(document).ready(function() {
+            if ($('.select2-enable').length > 0) { $('.select2-enable').select2({ dir: document.documentElement.dir, width: '100%' }); }
 
-            // فعال‌سازی تقویم شمسی (بدون تغییر)
-            $(".jalali-datepicker").persianDatepicker({
-                format: 'YYYY/MM/DD',
-                autoClose: true,
-                toolbox: { calendarSwitch: { enabled: false } },
-                observer: true,
-                initialValue: false,
-                persianDigit: false
-            });
-
-            // نمایش پیغام‌ها (بدون تغییر)
-            {% if messages %}
-                {% for message in messages %}
-                    Toastify({
-                        text: "{{ message|safe }}",
-                        duration: 4000,
-                        close: true,
-                        gravity: "bottom",
-                        position: "right",
-                        backgroundColor: "{{ message.tags }}" === "success" ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ff5f6d, #ffc371)",
-                        stopOnFocus: true,
-                    }).showToast();
-                {% endfor %}
-            {% endif %}
+            // Show current date
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const today = new Date();
+            const locale = document.documentElement.lang === 'fa' ? 'fa-IR' : 'en-US';
+            if(document.getElementById('current-date-display')) document.getElementById('current-date-display').innerText = today.toLocaleDateString(locale, options);
         });
 
-        // توابع مربوط به مودال حذف (بدون تغییر)
+        // 6. Toasts
+        {% if messages %}
+            {% for message in messages %}
+                Toastify({ text: "{{ message|safe }}", duration: 4000, gravity: "top", position: "center", style: { background: "{{ message.tags }}" === "success" ? "linear-gradient(to right, #00b09b, #96c93d)" : "linear-gradient(to right, #ef4444, #f87171)", borderRadius: "10px" } }).showToast();
+            {% endfor %}
+        {% endif %}
 
-        function openDeleteModal(url, message, triggerForm) {
-            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            var modalForm = document.getElementById('deleteModalForm');
-
-            // 1. تنظیم URL و پیام
-            modalForm.action = url;
-            document.getElementById('deleteModalMessage').innerText = message;
-
-            // 2. پاک کردن فیلدهای مخفی قبلی
-            var extraFieldsContainer = document.getElementById('deleteModalExtraFields');
-            extraFieldsContainer.innerHTML = '';
-
-            // 3. (مهم) کپی کردن فیلدهای مخفی از فرم اصلی به مودال
-            if (triggerForm) {
-                var hiddenInputs = triggerForm.querySelectorAll('input[type="hidden"]');
-                hiddenInputs.forEach(function(input) {
-                    // ما از کپی کردن توکن CSRF خود فرم صرف نظر می کنیم
-                    // چون فرم مودال خودش توکن دارد
-                        if (input.name !== 'csrfmiddlewaretoken') {
-                            var clonedInput = input.cloneNode(true);
-                            extraFieldsContainer.appendChild(clonedInput);
-                        }
-                });
-        }
-
-        // 4. نمایش مودال
-        deleteModal.show();
-    }
-
-
-        function closeDeleteModal() {
-            // ...
-        }
+        window.addEventListener('click', function(event) { if (event.target == globalDeleteModal) { closeGlobalDeleteModal(); } });
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>

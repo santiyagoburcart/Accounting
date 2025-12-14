@@ -169,50 +169,48 @@ class OtherIncomeForm(forms.ModelForm):
 # START: CHANGE - کلاس SubscriptionForm شما با استایل‌دهی جدید ادغام شد
 # ===================================================================
 class SubscriptionForm(forms.ModelForm):
-    payment_date = forms.CharField(
-        label=_("Payment Date (Shamsi)"),
-        required=False,
-        widget=forms.TextInput()  # کلاس در __init__ اضافه می‌شود
-    )
-
     class Meta:
         model = Subscription
-        fields = [
-            'customer', 'year', 'month', 'price', 'giga', 'status',
-            'payment_date', 'expire_date', 'referrer', 'destination_bank'
-        ]
+        fields = ['customer', 'year', 'month', 'price', 'giga', 'status', 'payment_date', 'expire_date', 'referrer',
+                  'destination_bank']
         widgets = {
-            'expire_date': forms.DateInput(attrs={'type': 'date'}),
+            # تبدیل فیلدهای سال و ماه به لیست کشویی (Select)
+            'year': forms.Select(attrs={'class': 'form-select select2-enable'}),
+            'month': forms.Select(attrs={'class': 'form-select select2-enable'}),
+
+            # بقیه فیلدها
+            'price': forms.TextInput(attrs={'class': 'form-input'}),
+            'giga': forms.TextInput(attrs={'class': 'form-input'}),
+            'payment_date': forms.TextInput(attrs={'class': 'form-input jalali-datepicker', 'autocomplete': 'off'}),
+            'expire_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
+            'customer': forms.Select(attrs={'class': 'form-select select2-enable'}),
+            'referrer': forms.Select(attrs={'class': 'form-select select2-enable'}),
+            'destination_bank': forms.Select(attrs={'class': 'form-select select2-enable'}),
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-        if user:
-            self.fields['customer'].queryset = CustomerProfile.objects.filter(creator=user)
-            self.fields['referrer'].queryset = CustomerProfile.objects.filter(creator=user)
-            self.fields['destination_bank'].queryset = BankAccount.objects.filter(creator=user)
+        self.user = kwargs.pop('user', None)
+        super(SubscriptionForm, self).__init__(*args, **kwargs)
 
-        # **تغییر اصلی**: این حلقه به تمام فیلدهای فرم، کلاس CSS مناسب را اضافه می‌کند
-        for field_name, field in self.fields.items():
-            if isinstance(field.widget, forms.Select):
-                field.widget.attrs.update({'class': 'form-select'})
-            else:
-                field.widget.attrs.update({'class': 'form-input'})
+        # 1. تنظیم گزینه‌های سال (از ۵ سال قبل تا ۵ سال بعد)
+        this_year = jdatetime.date.today().year
+        YEAR_CHOICES = [(y, y) for y in range(this_year - 5, this_year + 5)]
+        self.fields['year'].widget.choices = YEAR_CHOICES
 
-        # استایل‌های خاص همچنان اعمال می‌شوند
-        add_jalali_date_picker_class(self.fields.get('payment_date'))
-        self.fields['expire_date'].widget.attrs.update({'placeholder': 'YYYY-MM-DD'})
+        # 2. تنظیم گزینه‌های ماه (نام‌های فارسی/انگلیسی بر اساس ترجمه)
+        MONTH_CHOICES = [
+            (1, _('Farvardin')), (2, _('Ordibehesht')), (3, _('Khordad')),
+            (4, _('Tir')), (5, _('Mordad')), (6, _('Shahrivar')),
+            (7, _('Mehr')), (8, _('Aban')), (9, _('Azar')),
+            (10, _('Dey')), (11, _('Bahman')), (12, _('Esfand'))
+        ]
+        self.fields['month'].widget.choices = MONTH_CHOICES
 
-        if self.instance and self.instance.pk and self.instance.payment_date:
-            jalali_date = jdatetime.date.fromgregorian(date=self.instance.payment_date)
-            self.initial['payment_date'] = jalali_date.strftime('%Y/%m/%d')
-
-    def clean_payment_date(self):
-        date_str = self.cleaned_data.get('payment_date')
-        if date_str:
-            return to_gregorian_date(date_str)
-        return None
+        # 3. فیلتر کردن لیست‌ها بر اساس کاربر لاگین شده
+        if self.user:
+            self.fields['customer'].queryset = CustomerProfile.objects.filter(creator=self.user)
+            self.fields['referrer'].queryset = CustomerProfile.objects.filter(creator=self.user)
+            self.fields['destination_bank'].queryset = BankAccount.objects.filter(creator=self.user)
 
 
 # END: CHANGE

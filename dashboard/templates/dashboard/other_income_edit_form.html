@@ -1,35 +1,43 @@
-{% extends "dashboard/base.html" %}
+{% extends 'dashboard/base.html' %}
 {% load i18n %}
 
 {% block title %}{% trans "Edit Income" %}{% endblock %}
-{% block page_title %}{% trans "Edit Income" %}{% endblock %}
-
-{% block extra_head %}
-    {{ form.media }}
-{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="glass-card p-6 md:p-8">
-        <h2 class="text-2xl font-bold mb-6 text-start">
-            {% trans "Editing Income" %}: {{ income.name }}
-        </h2>
+<div class="max-w-xl mx-auto mt-10">
+    <div class="glass-card p-8 border-t-4 border-emerald-500">
+        <h2 class="text-xl font-bold text-[var(--text-main)] mb-6">{% trans "Edit Income" %}</h2>
 
-        <form method="post" class="space-y-6 form-container text-start">
+        <form method="post" class="space-y-5">
             {% csrf_token %}
 
-            <div>{{ form.name.label_tag }}{{ form.name }}</div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>{{ form.price.label_tag }}{{ form.price }}</div>
-                <div>{{ form.deposit_date.label_tag }}{{ form.deposit_date }}</div>
+            <div>
+                <label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Deposit Date (Shamsi)" %}</label>
+                <input type="text" name="deposit_date" value="{{ income.jalali_deposit_date }}" class="form-input jalali-datepicker">
             </div>
-            <div>{{ form.description.label_tag }}{{ form.description }}</div>
 
-            <div class="pt-4 flex flex-col sm:flex-row gap-4">
-                <button type="submit" class="flex-1 btn btn-gradient">{% trans "Save Changes" %}</button>
-                <a href="{{ redirect_url }}" class="flex-1 btn btn-secondary text-center">{% trans "Cancel" %}</a>
+            {% for field in form %}
+                {% if field.name != 'deposit_date' %}
+                <div>
+                    <label class="block text-sm text-[var(--text-muted)] mb-1">{{ field.label }}</label>
+                    {{ field }}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="flex gap-4 pt-4">
+                <a href="{{ redirect_url }}" class="w-1/2 py-2.5 rounded-xl border border-[var(--border-color)] text-center text-[var(--text-muted)] hover:bg-[var(--bg-body)]">{% trans "Cancel" %}</a>
+                <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-emerald-500 text-white font-bold hover:bg-emerald-600">{% trans "Save" %}</button>
             </div>
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        window.initPersianDatepicker(".jalali-datepicker");
+    });
+</script>
 {% endblock %}
