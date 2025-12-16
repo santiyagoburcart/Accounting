@@ -169,6 +169,12 @@ class OtherIncomeForm(forms.ModelForm):
 # START: CHANGE - کلاس SubscriptionForm شما با استایل‌دهی جدید ادغام شد
 # ===================================================================
 class SubscriptionForm(forms.ModelForm):
+    # 1. اضافه کردن این خط برای اینکه فرم اجازه دهد متن شمسی وارد شود
+    payment_date = forms.CharField(
+        label=_("Payment Date"),
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-input jalali-datepicker', 'autocomplete': 'off'})
+    )
     class Meta:
         model = Subscription
         fields = ['customer', 'year', 'month', 'price', 'giga', 'status', 'payment_date', 'expire_date', 'referrer',
@@ -181,7 +187,7 @@ class SubscriptionForm(forms.ModelForm):
             # بقیه فیلدها
             'price': forms.TextInput(attrs={'class': 'form-input'}),
             'giga': forms.TextInput(attrs={'class': 'form-input'}),
-            'payment_date': forms.TextInput(attrs={'class': 'form-input jalali-datepicker', 'autocomplete': 'off'}),
+            #'payment_date': forms.TextInput(attrs={'class': 'form-input jalali-datepicker', 'autocomplete': 'off'}),
             'expire_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
             'customer': forms.Select(attrs={'class': 'form-select select2-enable'}),
             'referrer': forms.Select(attrs={'class': 'form-select select2-enable'}),
@@ -212,6 +218,16 @@ class SubscriptionForm(forms.ModelForm):
             self.fields['referrer'].queryset = CustomerProfile.objects.filter(creator=self.user)
             self.fields['destination_bank'].queryset = BankAccount.objects.filter(creator=self.user)
 
+        # 2. اضافه کردن این بخش برای نمایش تاریخ شمسی هنگام ادیت کردن
+        if self.instance and self.instance.pk and self.instance.payment_date:
+            self.initial['payment_date'] = jdatetime.date.fromgregorian(date=self.instance.payment_date).strftime('%Y/%m/%d')
+
+    # 3. اضافه کردن مترجم (تبدیل شمسی به میلادی)
+    def clean_payment_date(self):
+        date_str = self.cleaned_data.get('payment_date')
+        if date_str:
+            return to_gregorian_date(date_str)
+        return None
 
 # END: CHANGE
 

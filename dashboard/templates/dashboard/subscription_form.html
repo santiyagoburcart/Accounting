@@ -52,16 +52,29 @@
                 </div>
 
                 <div class="flex items-center pt-8">
+                    <input type="hidden" name="status" id="real_status_input" value="{{ form.instance.status|default:'pending' }}">
+
                     <label class="switch form-switch">
-                        <input type="checkbox" name="status" value="success" {% if form.status.value == 'success' %}checked{% endif %}>
+                        <input type="checkbox" id="status_display_toggle"
+                            {% if form.instance.status == 'success' %}checked{% endif %}
+                        onchange="document.getElementById('real_status_input').value = this.checked ? 'success' : 'pending'">
                         <span class="switch-slider"></span>
                     </label>
                     <label class="mx-3 text-[var(--text-main)] font-medium">{% trans "Paid Status" %}</label>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Payment Date" %}</label>
-                    <input type="text" name="payment_date" value="{{ form.payment_date.value|default:'' }}" class="form-input jalali-datepicker">
+                    <label class="block text-sm font-medium text-[var(--text-muted)] mb-2">{% trans "Payment Date" %}
+                        {% trans "Payment Date" %}
+                    </label>
+
+                    {{ form.payment_date }}
+
+                    {% if form.payment_date.errors %}
+                        <div class="text-red-500 text-xs mt-1">
+                            {{ form.payment_date.errors }}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div>
@@ -95,14 +108,22 @@
 {% block extra_scripts %}
 <script>
     $(document).ready(function() {
-        // فعال‌سازی Select2 برای تمام سلکت‌ها
+        // ۱. ابتدا کلاس‌های مورد نیاز را به فیلد تاریخ اضافه می‌کنیم
+        // فیلدهای جنگو معمولا اسمشان همان اسم فیلد در فرم است
+        $('[name="payment_date"]').addClass('form-input jalali-datepicker');
+        // اگر اتریبیوت تایپ درست نبود، آن را تکست میکنیم تا دیت پیکر کار کند
+        $('[name="payment_date"]').attr('type', 'text');
+        // حذف مقدار value اگر به صورت میلادی رندر شده باشد (اختیاری ولی توصیه می‌شود برای جلوگیری از تداخل)
+        // البته اگر ویجت شما درست باشد، خودش تاریخ شمسی برمی‌گرداند و نیازی به این خط نیست.
+
+        // ۲. فعال‌سازی Select2
         $('select').select2({
             theme: "classic",
             width: '100%',
             dir: document.documentElement.dir
         });
 
-        // فعال‌سازی تقویم
+        // ۳. فعال‌سازی تقویم
         window.initPersianDatepicker(".jalali-datepicker");
     });
 </script>
