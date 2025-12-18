@@ -21,6 +21,9 @@ from django.views.decorators.http import require_POST
 from django.template.defaulttags import register
 import jdatetime
 import pandas as pd
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+# بقیه ایمپورت‌ها مثل قبل (Sum, chain, timezone, render, etc.)
+
 
 # وارد کردن مدل‌ها و فرم‌های خودتان
 from .forms import (
@@ -743,3 +746,154 @@ def restore_db(request):
         return redirect('dashboard:backup_panel')
 
     return redirect('dashboard:backup_panel')
+
+
+@login_required
+def main_dashboard_view(request):
+    """
+    Main Dashboard: Shows daily statistics and PAGINATED recent activities.
+    """
+    today = timezone.now().date()
+
+    # --- 1. Daily Stats (بدون تغییر) ---
+    subs_today = Subscription.objects.filter(creator=request.user, status='success', payment_date=today)
+    subs_income_today = subs_today.aggregate(total=Sum('price'))['total'] or 0
+    subs_count_today = subs_today.count()
+
+    other_income_today = \
+    OtherIncome.objects.filter(creator=request.user, deposit_date=today).aggregate(total=Sum('price'))['total'] or 0
+    expenses_today = Expense.objects.filter(creator=request.user, spending_date=today).aggregate(total=Sum('price'))[
+                         'total'] or 0
+
+    total_income_today = subs_income_today + other_income_today
+    net_profit_today = total_income_today - expenses_today
+
+    # --- 2. Recent Activity (با قابلیت صفحه‌بندی) ---
+
+    # الف) گرفتن همه داده‌ها (نه فقط ۵ تا)
+    # نکته: اگر داده‌ها خیلی زیاد شد (مثلاً ۱۰۰ هزار تا) بهتر است محدودیت ۵۰۰ تایی بگذارید.
+    # فعلاً همه را می‌گیریم چون برای داشبورد شخصی معمولاً مشکلی نیست.
+    all_expenses = Expense.objects.filter(creator=request.user).order_by('-created_at')
+    all_incomes = OtherIncome.objects.filter(creator=request.user).order_by('-created_at')
+    all_subscriptions = Subscription.objects.filter(creator=request.user, status='success').order_by('-payment_date')
+
+    # ب) ترکیب و مرتب‌سازی در پایتون
+    full_activity_list = sorted(
+        chain(all_expenses, all_incomes, all_subscriptions),
+        key=lambda instance: getattr(instance, 'created_at', None) or getattr(instance, 'payment_date', None),
+        reverse=True
+    )
+
+    # ج) اعمال Paginator (۲۰ آیتم در هر صفحه)
+    paginator = Paginator(full_activity_list, 20)
+    page_number = request.GET.get('page')
+
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    context = {
+        'total_income_today': total_income_today,
+        'expenses_today': expenses_today,
+        'net_profit_today': net_profit_today,
+        'subs_count_today': subs_count_today,
+        'page_obj': page_obj,  # متغیر جدید برای قالب که شامل لیست صفحه‌بندی شده است
+    }
+    return render(request, 'dashboard/main_dashboard.html', context)
+
+
+@login_required
+def bank_report_view(request):
+    # دریافت تاریخ امروز برای تنظیم پیش‌فرض‌ها
+    current_date = jdatetime.date.today()
+    selected_year = request.GET.get('year', str(current_date.year))
+    selected_month = request.GET.get('month', str(current_date.month))
+
+    try:
+        year_num = int(selected_year)
+        month_num = int(selected_month)
+    except ValueError:
+        year_num = current_date.year
+        month_num = current_date.month
+
+    # محاسبه تاریخ شروع و پایان برای فیلتر کردن
+    try:
+        start_date = jdatetime.date(year_num, month_num, 1).togregorian()
+        if month_num == 12:
+            end_date = jdatetime.date(year_num + 1, 1, 1).togregorian()
+        else:
+            end_date = jdatetime.date(year_num, month_num + 1, 1).togregorian()
+    except Exception:
+        start_date = current_date.togregorian()
+        end_date = current_date.togregorian()
+
+    # --- شروع پردازش بانک‌ها ---
+    banks = BankAccount.objects.filter(creator=request.user)
+    bank_stats = []
+    total_assets = 0
+
+    for bank in banks:
+        # A. محاسبه اشتراک‌ها
+        subs_qs = Subscription.objects.filter(
+            creator=request.user,
+            destination_bank=bank,
+            status='success',
+            year=year_num,
+            month=month_num
+        )
+        subs_income = subs_qs.aggregate(total=Sum('price'))['total'] or 0
+
+        # B. محاسبه سایر درآمدها
+        other_qs = OtherIncome.objects.filter(
+            creator=request.user,
+            destination_bank=bank,
+            deposit_date__gte=start_date,
+            deposit_date__lt=end_date
+        )
+        other_income = other_qs.aggregate(total=Sum('price'))['total'] or 0
+
+        # C. محاسبه هزینه‌ها
+        expense_qs = Expense.objects.filter(
+            creator=request.user,
+            source_bank=bank,
+            spending_date__gte=start_date,
+            spending_date__lt=end_date
+        )
+        total_expense = expense_qs.aggregate(total=Sum('price'))['total'] or 0
+
+        # D. محاسبه موجودی خالص
+        net_balance = (subs_income + other_income) - total_expense
+        total_assets += net_balance
+
+        bank_stats.append({
+            'bank': bank,
+            'subs_income': subs_income,
+            'other_income': other_income,
+            'total_expense': total_expense,
+            'net_balance': net_balance
+        })
+
+    # --- تنظیمات هوشمند تقویم ---
+
+    # 1. سال‌ها: از ۳ سال پیش تا ۱ سال بعد (به صورت خودکار آپدیت می‌شود)
+    current_year_num = current_date.year
+    years = range(current_year_num - 3, current_year_num + 2)
+
+    # 2. ماه‌ها: به صورت فینگلیش (طبق درخواست شما)
+    months = {
+        1: 'Farvardin', 2: 'Ordibehesht', 3: 'Khordad', 4: 'Tir', 5: 'Mordad', 6: 'Shahrivar',
+        7: 'Mehr', 8: 'Aban', 9: 'Azar', 10: 'Dey', 11: 'Bahman', 12: 'Esfand'
+    }
+
+    context = {
+        'bank_stats': bank_stats,
+        'total_assets': total_assets,
+        'selected_year': int(selected_year),
+        'selected_month': int(selected_month),
+        'years': years,
+        'months': months,
+    }
+    return render(request, 'dashboard/bank_report.html', context)

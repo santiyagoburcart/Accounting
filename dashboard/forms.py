@@ -105,10 +105,11 @@ class ExpenseForm(forms.ModelForm):
 
     class Meta:
         model = Expense
-        fields = ['spending_date', 'issue', 'description', 'price', 'is_server_cost']
+        fields = ['spending_date', 'issue', 'description', 'price', 'is_server_cost', 'source_bank']
         widgets = {
             'issue': forms.TextInput(attrs={'placeholder': _('e.g., Office Rent')}),
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': _('Any additional details...')}),
+            'source_bank': forms.Select(attrs={'class': 'form-select select2-enable'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -140,10 +141,11 @@ class OtherIncomeForm(forms.ModelForm):
 
     class Meta:
         model = OtherIncome
-        fields = ['deposit_date', 'name', 'description', 'price']
+        fields = ['deposit_date', 'name', 'description', 'price', 'destination_bank']
         widgets = {
             'name': forms.TextInput(attrs={'placeholder': _("e.g., Project X Payment")}),
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': _('Any additional details...')}),
+            'destination_bank': forms.Select(attrs={'class': 'form-select select2-enable'}),
         }
 
     def __init__(self, *args, **kwargs):

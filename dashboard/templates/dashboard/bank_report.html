@@ -1,0 +1,127 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% load humanize %}
+{% load i18n %}
+
+{% block title %}{% trans "Bank Report" %}{% endblock %}
+
+{% block header_content %}{% endblock %}
+
+{% block content %}
+    <div class="relative w-full bg-gradient-to-r from-slate-900/80 to-indigo-900/80 backdrop-blur-xl rounded-3xl p-6 mb-8 border border-white/10 shadow-2xl overflow-hidden group">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-blue-500/20 rounded-full blur-[100px] group-hover:bg-blue-500/30 transition-all duration-700"></div>
+
+        <div class="relative flex flex-col lg:flex-row justify-between items-end gap-6 z-10">
+            <div class="w-full lg:w-auto text-center lg:text-left">
+                <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-300 mb-2">
+                    {% trans "Bank Report" %}
+                </h1>
+                <p class="text-slate-300 text-sm opacity-80 mb-4 lg:mb-0">
+                    {% trans "Monitor cash flow, income, and expenses per bank." %}
+                </p>
+            </div>
+
+            <form method="get" class="w-full lg:w-auto flex flex-col sm:flex-row gap-3 bg-white/5 p-2 rounded-2xl border border-white/10 backdrop-blur-md">
+                <div class="relative group w-full sm:w-32">
+                    <select name="month" class="w-full bg-[#0f172a] text-white border border-white/10 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer hover:bg-white/5 transition-colors" onchange="this.form.submit()">
+                        {% for m_num, m_name in months.items %}
+                            <option value="{{ m_num }}" {% if m_num == selected_month %}selected{% endif %}>{{ m_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <i data-feather="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                </div>
+
+                <div class="relative group w-full sm:w-24">
+                    <select name="year" class="w-full bg-[#0f172a] text-white border border-white/10 rounded-xl px-4 py-2.5 text-sm appearance-none focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer hover:bg-white/5 transition-colors" onchange="this.form.submit()">
+                        {% for y in years %}
+                            <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                    <i data-feather="chevron-down" class="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                </div>
+            </form>
+
+            <div class="hidden lg:block glass-card px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                <span class="text-[10px] text-emerald-300 uppercase tracking-wider block mb-0.5 font-bold">{% trans "Net Flow (This Month)" %}</span>
+                <span class="text-xl font-black text-white tracking-tight">
+                    {{ total_assets|intcomma }} <span class="text-xs font-normal text-gray-400">T</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for item in bank_stats %}
+        <div class="glass-card p-0 relative overflow-hidden group hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 rounded-3xl border border-white/5 bg-[#0f172a]/60">
+
+            <div class="p-6 pb-4 bg-gradient-to-br from-white/5 to-transparent border-b border-white/5 relative">
+                <div class="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <i data-feather="credit-card" class="w-20 h-20 transform rotate-12 text-white"></i>
+                </div>
+
+                <div class="flex items-center gap-4 relative z-10">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-lg shadow-indigo-500/10">
+                        <i data-feather="briefcase" class="w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white tracking-wide">{{ item.bank.bank_name }}</h3>
+                        <p class="text-xs text-gray-400 font-mono mt-1 tracking-wider bg-black/20 px-2 py-0.5 rounded-md inline-block">
+                            {{ item.bank.account_number|default:"----" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-6">
+
+                <div class="text-center">
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-1 font-bold">{% trans "Net Flow" %}</p>
+                    <p class="text-3xl font-black {% if item.net_balance >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %} drop-shadow-sm">
+                        {{ item.net_balance|intcomma }} <span class="text-xs font-medium text-gray-500">T</span>
+                    </p>
+                </div>
+
+                <div class="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center bg-emerald-500/5 rounded-lg p-2 px-3 border border-emerald-500/10">
+                        <div class="flex items-center gap-2">
+                            <i data-feather="arrow-up-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="text-xs text-gray-300">{% trans "Total Income" %}</span>
+                        </div>
+                        <span class="text-sm font-bold text-emerald-400">+{{ item.subs_income|add:item.other_income|intcomma }}</span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-rose-500/5 rounded-lg p-2 px-3 border border-rose-500/10">
+                        <div class="flex items-center gap-2">
+                            <i data-feather="arrow-down-circle" class="w-4 h-4 text-rose-400"></i>
+                            <span class="text-xs text-gray-300">{% trans "Total Expenses" %}</span>
+                        </div>
+                        <span class="text-sm font-bold text-rose-400">-{{ item.total_expense|intcomma }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div class="text-center bg-white/5 rounded-lg py-2">
+                        <span class="block text-[9px] text-gray-500 uppercase">{% trans "Subs" %}</span>
+                        <span class="text-xs font-bold text-gray-300">{{ item.subs_income|intcomma }}</span>
+                    </div>
+                    <div class="text-center bg-white/5 rounded-lg py-2">
+                        <span class="block text-[9px] text-gray-500 uppercase">{% trans "Other" %}</span>
+                        <span class="text-xs font-bold text-gray-300">{{ item.other_income|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-1 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-70"></div>
+        </div>
+        {% empty %}
+        <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+             <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-600">
+                <i data-feather="slash" class="w-8 h-8"></i>
+            </div>
+            <p class="text-gray-400">{% trans "No data for this period." %}</p>
+        </div>
+        {% endfor %}
+    </div>
+{% endblock %}

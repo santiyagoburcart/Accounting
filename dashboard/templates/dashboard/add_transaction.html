@@ -46,11 +46,17 @@
                 <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Spending Date (Shamsi)" %}</label><input type="text" name="expense-spending_date" class="form-input jalali-datepicker" autocomplete="off"></div>
                 <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Issue" %}</label>{{ expense_form.issue }}</div>
                 <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Price" %}</label>{{ expense_form.price }}</div>
+
+                {# 👇👇 فیلد جدید بانک مبدأ 👇👇 #}
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Source Bank" %}</label>{{ expense_form.source_bank }}</div>
+                {# 👆👆 ----------------------- 👆👆 #}
+
                 <div class="flex items-center justify-between py-2"><span class="text-sm text-[var(--text-main)]">{% trans "Is it a server cost?" %}</span><label class="switch form-switch"><input type="checkbox" name="expense-is_server_cost"><span class="switch-slider"></span></label></div>
                 <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Description" %}</label>{{ expense_form.description }}</div>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold transition-colors">{% trans "Add Expense" %}</button>
             </form>
         </div>
+
         <div class="glass-card p-6 border-t-4 border-emerald-500">
             <h3 class="text-lg font-bold text-emerald-500 mb-4 flex items-center gap-2"><i data-feather="plus-circle"></i> {% trans "Add Other Income" %}</h3>
             <form method="post" class="space-y-4">
@@ -59,6 +65,11 @@
                 <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Deposit Date (Shamsi)" %}</label><input type="text" name="income-deposit_date" class="form-input jalali-datepicker" autocomplete="off"></div>
                 <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Depositor Name" %}</label>{{ other_income_form.name }}</div>
                 <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Price" %}</label>{{ other_income_form.price }}</div>
+
+                {# 👇👇 فیلد جدید بانک مقصد 👇👇 #}
+                <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Destination Bank" %}</label>{{ other_income_form.destination_bank }}</div>
+                {# 👆👆 ----------------------- 👆👆 #}
+
                 <div><label class="block text-sm text-[var(--text-muted)] mb-1">{% trans "Description" %}</label>{{ other_income_form.description }}</div>
                 <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-colors">{% trans "Add Income" %}</button>
             </form>

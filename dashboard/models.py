@@ -38,6 +38,15 @@ class Expense(models.Model):
     is_server_cost = models.BooleanField(default=False, verbose_name=_("Is it a server cost?"))
     created_at = models.DateTimeField(auto_now_add=True)
 
+    source_bank = models.ForeignKey(
+        'BankAccount',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Source Bank"),
+        related_name='expenses'
+    )
+
     def __str__(self):
         return self.issue or _("Expense without issue")
 
@@ -60,6 +69,14 @@ class OtherIncome(models.Model):
     description = models.TextField(verbose_name=_("Description"), blank=True)
     price = models.PositiveIntegerField(default=0, verbose_name=_("Price"))
     created_at = models.DateTimeField(auto_now_add=True)
+    destination_bank = models.ForeignKey(
+        'BankAccount',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Destination Bank"),
+        related_name='other_incomes'
+    )
 
     def __str__(self):
         return self.name or _("Income without name")

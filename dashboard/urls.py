@@ -24,6 +24,8 @@ from .views import (
     download_backup,
     telegram_backup,
     restore_db,
+    main_dashboard_view,
+    bank_report_view,
 
 
 )
@@ -67,6 +69,11 @@ urlpatterns = [
     path('backup/download/', download_backup, name='backup_download'),
     path('backup/telegram/', telegram_backup, name='backup_telegram'),
     path('backup/restore/', restore_db, name='backup_restore'),
+
+    # Main Dashboard (New Home)
+    path('', main_dashboard_view, name='main_dashboard'),
+
+    path('bank-report/', bank_report_view, name='bank_report'),
 
 
 ]

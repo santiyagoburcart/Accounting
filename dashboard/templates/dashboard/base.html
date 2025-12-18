@@ -35,7 +35,7 @@
         <aside id="sidebar" class="w-64 fixed md:static inset-y-0 {% if LANGUAGE_BIDI %}right-0 border-l{% else %}left-0 border-r{% endif %} z-40 bg-[var(--bg-sidebar)] border-[var(--border-color)] transform {% if LANGUAGE_BIDI %}translate-x-full{% else %}-translate-x-full{% endif %} md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-2xl">
 
             <div class="h-20 flex items-center justify-center border-b border-[var(--border-color)] relative">
-                <a href="{% url 'dashboard:subscription_dashboard' %}" class="flex items-center gap-3 text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 hover:scale-105 transition-transform">
+                <a href="{% url 'dashboard:main_dashboard' %}" class="flex items-center gap-3 text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 hover:scale-105 transition-transform">
                     <i data-feather="hexagon" class="text-purple-500 fill-purple-500/20"></i>
                     AP Accounting
                 </a>
@@ -44,9 +44,14 @@
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
                 <p class="px-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2 opacity-70">{% trans "Main Menu" %}</p>
 
+                <a href="{% url 'dashboard:main_dashboard' %}"
+                   class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if request.resolver_match.url_name == 'main_dashboard' %}active{% endif %}">
+                    <i data-feather="home"></i><span>{% trans "Main Dashboard" %}</span>
+                </a>
+
                 <a href="{% url 'dashboard:subscription_dashboard' %}"
                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if 'subscription' in request.path %}active{% endif %}">
-                    <i data-feather="grid"></i><span>{% trans "Dashboard" %}</span>
+                    <i data-feather="grid"></i><span>{% trans "Subscriptions" %}</span>
                 </a>
 
                 <a href="{% url 'dashboard:financial_report' %}"
@@ -73,13 +78,17 @@
                     <i data-feather="credit-card"></i><span>{% trans "Bank Accounts" %}</span>
                 </a>
 
+                <a href="{% url 'dashboard:bank_report' %}"
+                   class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if request.resolver_match.url_name == 'bank_report' %}active{% endif %}">
+                    <i data-feather="briefcase"></i><span>{% trans "Bank Report" %}</span>
+                </a>
                 {% if user.is_superuser %}
                 <a href="{% url 'dashboard:backup_panel' %}"
                    class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-body)] hover:text-[var(--primary-color)] transition-all {% if 'backup' in request.path %}active{% endif %}">
                     <i data-feather="database"></i><span>{% trans "Backup & Restore" %}</span>
                 </a>
                 {% endif %}
-                </nav>
+            </nav>
 
             <div class="p-4 bg-[var(--bg-body)]/30 backdrop-blur-md border-t border-[var(--border-color)]">
 
@@ -150,9 +159,6 @@
                         <div>
                             <h1 class="text-3xl font-black text-[var(--text-main)] tracking-tight">{% block page_title %}{% endblock %}</h1>
                             <p class="text-[var(--text-muted)] text-sm mt-1">{% block page_subtitle %}{% endblock %}</p>
-                        </div>
-                        <div class="text-sm font-medium text-[var(--text-muted)] bg-[var(--bg-card)] px-4 py-2 rounded-full border border-[var(--border-color)] shadow-sm">
-                            📅 <span id="current-date-display"></span>
                         </div>
                     </div>
 
