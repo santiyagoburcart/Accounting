@@ -1,0 +1,143 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load i18n %}
+
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-32">
+    <div class="relative overflow-hidden bg-[#1e293b] p-6 rounded-3xl border border-white/5 shadow-2xl mb-8 group">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+
+        <div class="relative z-10 flex items-center gap-5">
+            <div class="w-16 h-16 rounded-2xl p-[2px] bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-lg">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" class="w-full h-full rounded-2xl object-cover border-2 border-[#1e293b]">
+                {% else %}
+                    <div class="w-full h-full rounded-2xl bg-[#0f172a] flex items-center justify-center text-xl font-bold text-white">
+                        {{ user.username|make_list|first|upper }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="flex-1">
+                <h2 class="text-xl font-black text-white mb-0.5">{{ user.first_name|default:user.username }}</h2>
+                <p class="text-xs text-slate-400 font-mono">{{ user.email }}</p>
+            </div>
+
+            <a href="{% url 'dashboard:mobile_profile' %}" class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 border border-white/10 hover:bg-indigo-500 hover:text-white hover:border-indigo-500 transition-all shadow-lg">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </a>
+        </div>
+    </div>
+
+    <h3 class="text-xs font-bold text-slate-500 mb-4 px-1 uppercase tracking-wider flex items-center gap-2">
+        <span class="w-1 h-1 rounded-full bg-indigo-500"></span> Management
+    </h3>
+
+    <div class="grid grid-cols-2 gap-4 mb-8">
+        <a href="{% url 'dashboard:mobile_bank_list' %}" class="bg-[#1e293b] p-5 rounded-3xl border border-white/5 flex flex-col items-center gap-3 hover:bg-white/5 hover:border-white/10 transition-all group shadow-lg">
+            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform shadow-inner">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <span class="text-sm font-bold text-white">Banks</span>
+        </a>
+
+        <a href="{% url 'dashboard:mobile_financial_report' %}" class="bg-[#1e293b] p-5 rounded-3xl border border-white/5 flex flex-col items-center gap-3 hover:bg-white/5 hover:border-white/10 transition-all group shadow-lg">
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform shadow-inner">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <span class="text-sm font-bold text-white">Reports</span>
+        </a>
+
+        <a href="{% url 'dashboard:mobile_backup' %}" class="col-span-2 bg-[#1e293b] p-5 rounded-3xl border border-white/5 flex items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all group shadow-lg">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform shadow-inner">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+                <div class="text-left">
+                    <span class="block text-sm font-bold text-white">Backup & Restore</span>
+                    <span class="block text-[10px] text-slate-500">Manage Database Safely</span>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-600 text-sm"></i>
+        </a>
+    </div>
+
+    <h3 class="text-xs font-bold text-slate-500 mb-4 px-1 uppercase tracking-wider flex items-center gap-2">
+        <span class="w-1 h-1 rounded-full bg-rose-500"></span> Settings
+    </h3>
+
+    <div class="space-y-3">
+        <div class="bg-[#1e293b] p-4 rounded-2xl border border-white/5 flex items-center justify-between shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center text-slate-300">
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+                <span class="text-sm font-bold text-white">Dark Mode</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="theme-toggle" class="sr-only peer" checked>
+                <div class="w-10 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+        </div>
+
+        <div class="bg-[#1e293b] p-4 rounded-2xl border border-white/5 flex items-center justify-between shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center text-slate-300">
+                    <i class="fa-solid fa-language"></i>
+                </div>
+                <span class="text-sm font-bold text-white">Language</span>
+            </div>
+
+            <form action="{% url 'set_language' %}" method="post" class="flex bg-black/20 rounded-lg p-1">
+                {% csrf_token %}
+                <input name="next" type="hidden" value="{{ redirect_to }}">
+
+                <button type="submit" name="language" value="en" class="px-3 py-1 rounded-md text-xs font-bold transition-all {% if LANGUAGE_CODE == 'en' %}bg-indigo-500 text-white shadow{% else %}text-slate-500 hover:text-white{% endif %}">
+                    EN
+                </button>
+                <button type="submit" name="language" value="fa" class="px-3 py-1 rounded-md text-xs font-bold transition-all {% if LANGUAGE_CODE == 'fa' %}bg-indigo-500 text-white shadow{% else %}text-slate-500 hover:text-white{% endif %}">
+                    FA
+                </button>
+            </form>
+        </div>
+
+        <form action="{% url 'logout' %}" method="post" class="block w-full pt-4">
+            {% csrf_token %}
+            <button type="submit" class="w-full bg-rose-500/10 p-4 rounded-2xl border border-rose-500/20 flex items-center justify-center gap-3 hover:bg-rose-500/20 transition-all active:scale-95 group">
+                <i class="fa-solid fa-right-from-bracket text-rose-500 text-lg"></i>
+                <span class="text-sm font-bold text-rose-400">Log Out</span>
+            </button>
+        </form>
+
+        <div class="text-center pt-4">
+            <span class="text-[10px] text-slate-600 font-mono">App Version 2.0.1 (PWA)</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Theme Logic using LocalStorage
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Check current theme
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        html.classList.add('dark');
+        themeToggle.checked = true;
+    } else {
+        html.classList.remove('dark');
+        themeToggle.checked = false;
+    }
+
+    themeToggle.addEventListener('change', function() {
+        if(this.checked) {
+            html.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            html.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+    });
+</script>
+{% endblock %}

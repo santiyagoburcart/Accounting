@@ -145,7 +145,10 @@ def add_transaction_view(request):
         'expenses_list': expenses_in_month.order_by('-spending_date'),
         'top_spending_monthly': top_spending_monthly,
     }
-    return render(request, 'dashboard/add_transaction.html', context)
+    template_name = 'dashboard/add_transaction.html'
+    if getattr(request, 'is_mobile', False):
+        template_name = 'dashboard/add_transaction_mobile.html'
+    return render(request, template_name, context)
 
 
 # ===================================================================
@@ -752,6 +755,7 @@ def restore_db(request):
 def main_dashboard_view(request):
     """
     Main Dashboard: Shows daily statistics and PAGINATED recent activities.
+    Supports Mobile/Desktop views.
     """
     today = timezone.now().date()
 
@@ -761,7 +765,7 @@ def main_dashboard_view(request):
     subs_count_today = subs_today.count()
 
     other_income_today = \
-    OtherIncome.objects.filter(creator=request.user, deposit_date=today).aggregate(total=Sum('price'))['total'] or 0
+        OtherIncome.objects.filter(creator=request.user, deposit_date=today).aggregate(total=Sum('price'))['total'] or 0
     expenses_today = Expense.objects.filter(creator=request.user, spending_date=today).aggregate(total=Sum('price'))[
                          'total'] or 0
 
@@ -769,25 +773,18 @@ def main_dashboard_view(request):
     net_profit_today = total_income_today - expenses_today
 
     # --- 2. Recent Activity (با قابلیت صفحه‌بندی) ---
-
-    # الف) گرفتن همه داده‌ها (نه فقط ۵ تا)
-    # نکته: اگر داده‌ها خیلی زیاد شد (مثلاً ۱۰۰ هزار تا) بهتر است محدودیت ۵۰۰ تایی بگذارید.
-    # فعلاً همه را می‌گیریم چون برای داشبورد شخصی معمولاً مشکلی نیست.
     all_expenses = Expense.objects.filter(creator=request.user).order_by('-created_at')
     all_incomes = OtherIncome.objects.filter(creator=request.user).order_by('-created_at')
     all_subscriptions = Subscription.objects.filter(creator=request.user, status='success').order_by('-payment_date')
 
-    # ب) ترکیب و مرتب‌سازی در پایتون
     full_activity_list = sorted(
         chain(all_expenses, all_incomes, all_subscriptions),
         key=lambda instance: getattr(instance, 'created_at', None) or getattr(instance, 'payment_date', None),
         reverse=True
     )
 
-    # ج) اعمال Paginator (۲۰ آیتم در هر صفحه)
     paginator = Paginator(full_activity_list, 20)
     page_number = request.GET.get('page')
-
     try:
         page_obj = paginator.get_page(page_number)
     except PageNotAnInteger:
@@ -795,14 +792,92 @@ def main_dashboard_view(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
 
+    # --- ساخت Context پایه ---
     context = {
         'total_income_today': total_income_today,
         'expenses_today': expenses_today,
         'net_profit_today': net_profit_today,
         'subs_count_today': subs_count_today,
-        'page_obj': page_obj,  # متغیر جدید برای قالب که شامل لیست صفحه‌بندی شده است
+        'page_obj': page_obj,
     }
-    return render(request, 'dashboard/main_dashboard.html', context)
+
+    # --- 3. منطق اختصاصی موبایل ---
+    template_name = 'dashboard/main_dashboard.html'
+
+    # اگر کاربر با موبایل آمده باشد
+    if getattr(request, 'is_mobile', False):
+        template_name = 'dashboard/main_dashboard_mobile.html'
+
+        # در موبایل ما آمار "ماهانه" و "کل دارایی" را نمایش می‌دهیم (نه فقط امروز)
+        # پس باید این‌ها را محاسبه کنیم:
+
+        # الف) محاسبه تاریخ اول ماه شمسی جاری
+        j_now = jdatetime.date.today()
+        start_month = jdatetime.date(j_now.year, j_now.month, 1).togregorian()
+
+        # ب) محاسبه درآمد و هزینه ماهانه
+        monthly_subs = Subscription.objects.filter(creator=request.user, status='success', year=j_now.year,
+                                                   month=j_now.month).aggregate(s=Sum('price'))['s'] or 0
+        monthly_other = \
+        OtherIncome.objects.filter(creator=request.user, deposit_date__gte=start_month).aggregate(s=Sum('price'))[
+            's'] or 0
+        monthly_expenses = \
+        Expense.objects.filter(creator=request.user, spending_date__gte=start_month).aggregate(s=Sum('price'))['s'] or 0
+
+        context['total_income_monthly'] = monthly_subs + monthly_other
+        context['total_expenses_monthly'] = monthly_expenses
+        context['net_profit_monthly'] = (monthly_subs + monthly_other) - monthly_expenses
+
+        # ج) محاسبه کل دارایی (موجودی تمام بانک‌ها)
+        # برای دقت بالا، بهتر است از همان فرمول بخش Bank Report استفاده کنیم
+        # اما برای سرعت، فعلاً جمع ساده ورودی/خروجی کل تاریخ را حساب می‌کنیم یا اگر فیلد balance دارید از آن استفاده کنید.
+        # اینجا فرض می‌کنیم فرمول ساده: کل درآمد تاریخ - کل هزینه تاریخ
+        all_time_income = (Subscription.objects.filter(creator=request.user, status='success').aggregate(
+            s=Sum('price'))['s'] or 0) + \
+                          (OtherIncome.objects.filter(creator=request.user).aggregate(s=Sum('price'))['s'] or 0)
+        all_time_expense = Expense.objects.filter(creator=request.user).aggregate(s=Sum('price'))['s'] or 0
+
+        context['total_assets'] = all_time_income - all_time_expense
+
+        # د) تبدیل لیست جنریک به لیست دیکشنری ساده (برای راحتی قالب موبایل)
+        # چون قالب موبایل که دادم انتظار دیکشنری دارد (type, title, price, bank_name)
+        mobile_transactions = []
+        for item in page_obj.object_list[:10]:  # فقط ۱۰ تای اول صفحه
+            t_type = 'unknown'
+            t_title = ''
+            t_price = 0
+            t_date = ''
+            t_bank = ''
+
+            if isinstance(item, Expense):
+                t_type = 'expense'
+                t_title = item.issue
+                t_price = item.price
+                t_date = item.jalali_spending_date
+                t_bank = item.source_bank.bank_name if item.source_bank else ''
+            elif isinstance(item, OtherIncome):
+                t_type = 'income'
+                t_title = item.name
+                t_price = item.price
+                t_date = item.jalali_deposit_date
+                t_bank = item.destination_bank.bank_name if item.destination_bank else ''
+            elif isinstance(item, Subscription):
+                t_type = 'subscription'  # رنگ بنفش در قالب
+                t_title = f"اشتراک {item.customer.name}" if item.customer else "اشتراک"
+                t_price = item.price
+                t_date = item.jalali_payment_date
+                t_bank = item.destination_bank.bank_name if item.destination_bank else ''
+
+            mobile_transactions.append({
+                'type': t_type,
+                'title': t_title,
+                'price': t_price,
+                'date_obj': t_date,
+                'bank_name': t_bank
+            })
+        context['recent_transactions'] = mobile_transactions
+
+    return render(request, template_name, context)
 
 
 @login_required

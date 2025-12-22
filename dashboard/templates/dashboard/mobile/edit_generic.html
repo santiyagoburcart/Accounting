@@ -1,0 +1,167 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
+<div class="p-6 pb-24">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-black text-white">{{ title }}</h1>
+        <div class="flex gap-2">
+            {% if delete_url %}
+            <form action="{{ delete_url }}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="w-10 h-10 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 hover:bg-rose-500/20 transition-colors">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'dashboard:mobile_transaction_list' %}" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 border border-white/10 hover:bg-white/10 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+    </div>
+
+    <form method="post" action="{{ action_url }}" class="space-y-5">
+        {% csrf_token %}
+
+        {% for field in form %}
+            <div>
+                {% if field.name == 'status' and is_subscription %}
+                    <input type="hidden" name="status" id="id_status" value="{{ field.value }}">
+                {% else %}
+                    <label class="text-xs text-slate-400 mb-2 block ml-1">{{ field.label }}</label>
+
+                    {% if field.name == date_field_name %}
+                        <div class="relative">
+                             <input type="text"
+                                   name="{{ field.name }}"
+                                   class="p-datepicker w-full bg-[#1e293b] border border-white/10 rounded-xl px-4 py-3 text-white text-center h-[48px] focus:border-indigo-500 transition-colors cursor-pointer"
+                                   value="{{ initial_date }}"
+                                   autocomplete="off"
+                                   placeholder="YYYY/MM/DD">
+                        </div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+
+                    {% if field.errors %}
+                        <p class="text-xs text-rose-400 mt-1 ml-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        {% if is_subscription %}
+        <div class="flex items-center justify-between bg-[#1e293b] p-4 rounded-xl border border-white/5 mt-6">
+            <span class="text-sm font-bold text-emerald-400">{% trans "Paid Status?" %}</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="status-toggle" class="sr-only peer" {% if current_status == 'success' %}checked{% endif %}>
+                <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+            </label>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 text-lg mt-8 transition-all active:scale-[0.98]">
+            {% trans "Save Changes" %}
+        </button>
+    </form>
+</div>
+
+<style>
+    @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+
+    input:not([type="checkbox"]), select, textarea {
+        width: 100%; background-color: #1e293b !important;
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem;
+        padding: 0.75rem 1rem; color: white !important; outline: none;
+        font-family: 'Vazirmatn', sans-serif;
+    }
+    input:focus, select:focus { border-color: #6366f1; box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2); }
+    textarea { height: 100px !important; }
+
+    /* کانتینر تقویم */
+    .datepicker-container {
+        position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh;
+        z-index: 999999 !important;
+        background-color: rgba(0,0,0,0.7) !important; /* پس‌زمینه دودی */
+        backdrop-filter: blur(5px);
+    }
+
+    /* باکس اصلی تقویم */
+    .datepicker-plot-area {
+        position: fixed !important;
+        top: 50% !important; left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+
+        /* ✅ سایز فیکس و کوچک */
+        width: 280px !important;
+        max-width: 90% !important;
+        height: auto !important;
+        min-height: unset !important;
+
+        background-color: #1e293b !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+        padding: 12px !important;
+        font-family: 'Vazirmatn', sans-serif !important;
+        box-sizing: border-box !important;
+    }
+
+    /* هدر */
+    .datepicker-plot-area .datepicker-header {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        padding-bottom: 10px !important; margin-bottom: 10px !important;
+    }
+    .datepicker-plot-area .datepicker-header .btn-switch {
+        color: #fff !important; font-weight: bold !important; font-size: 14px !important; background: transparent !important;
+    }
+    .datepicker-plot-area .datepicker-header .btn-next,
+    .datepicker-plot-area .datepicker-header .btn-prev { color: #6366f1 !important; font-size: 18px !important; }
+
+    /* روزها */
+    .datepicker-plot-area .datepicker-day-view .table-days td span {
+        color: #94a3b8 !important; background: transparent !important;
+        width: 32px !important; height: 32px !important; line-height: 32px !important;
+        border-radius: 8px !important; font-size: 13px !important; margin: 1px !important;
+        transition: all 0.2s;
+    }
+    .datepicker-plot-area .datepicker-day-view .table-days td.selected span {
+        background-color: #6366f1 !important; color: white !important;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    /* حذف تولباکس پایین */
+    .datepicker-plot-area .toolbox { display: none !important; }
+</style>
+
+<script>
+    $(document).ready(function() {
+        $(".p-datepicker").pDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false,
+            calendar: { persian: { locale: 'en' } },
+            toolbox: { calendarSwitch: { enabled: false } },
+        });
+
+        // لاجیک تاگل وضعیت برای سابسکرایبشن
+        const toggle = document.getElementById('status-toggle');
+        const hiddenInput = document.getElementById('id_status');
+
+        if (toggle && hiddenInput) {
+            toggle.addEventListener('change', function() {
+                hiddenInput.value = this.checked ? 'success' : 'pending';
+            });
+        }
+    });
+</script>
+{% endblock %}

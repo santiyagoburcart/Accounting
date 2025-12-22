@@ -1,0 +1,104 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load humanize %}
+{% load i18n %}
+
+{% block title %}Bank Report{% endblock %}
+
+{% block content %}
+<div class="p-4 pb-24">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-black text-white">Bank Report</h1>
+        <a href="{% url 'dashboard:mobile_menu' %}" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 border border-white/10">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+    </div>
+
+    <form method="get" class="bg-[#1e293b] p-3 rounded-2xl border border-white/5 flex gap-2 mb-6">
+        <select name="month" class="bg-black/20 text-white text-xs rounded-xl px-3 py-2 outline-none border border-white/5 flex-1" onchange="this.form.submit()">
+            {% for m in months %}
+                <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>
+                    {% cycle 'Farvardin' 'Ordibehesht' 'Khordad' 'Tir' 'Mordad' 'Shahrivar' 'Mehr' 'Aban' 'Azar' 'Dey' 'Bahman' 'Esfand' %}
+                </option>
+            {% endfor %}
+        </select>
+        <select name="year" class="bg-black/20 text-white text-xs rounded-xl px-3 py-2 outline-none border border-white/5 w-20" onchange="this.form.submit()">
+            {% for y in years %}
+                <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-4 mb-6 shadow-lg shadow-blue-500/20 flex justify-between items-center">
+        <div>
+            <p class="text-xs text-blue-100 font-medium opacity-80">NET FLOW (THIS MONTH)</p>
+            <h2 class="text-2xl font-black text-white mt-1" dir="ltr">{{ total_net_flow|intcomma }} <span class="text-sm font-normal">T</span></h2>
+        </div>
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+            <i class="fa-solid fa-chart-line text-white"></i>
+        </div>
+    </div>
+
+    <a href="{% url 'dashboard:mobile_bank_add' %}" class="block w-full py-3 mb-6 rounded-xl border-2 border-dashed border-white/10 text-slate-400 text-center text-sm font-bold hover:border-indigo-500 hover:text-indigo-400 transition-colors">
+        <i class="fa-solid fa-plus mr-2"></i> Add New Bank
+    </a>
+
+    <div class="space-y-5">
+        {% for bank in banks %}
+        <a href="{% url 'dashboard:mobile_bank_edit' bank.id %}" class="block bg-[#1e293b] rounded-3xl p-5 border border-white/5 shadow-xl relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-6 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2a374a] to-[#1e293b] border border-white/5 flex items-center justify-center shadow-inner">
+                        <i class="fa-solid fa-building-columns text-indigo-400 text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">{{ bank.bank_name }}</h3>
+                        <p class="text-[10px] text-slate-500 font-mono tracking-wider">{{ bank.account_number|default:"No Account Number" }}</p>
+                    </div>
+                </div>
+                <i class="fa-regular fa-credit-card absolute right-0 top-0 text-7xl text-white/5 -rotate-12 transform translate-x-2 -translate-y-2"></i>
+            </div>
+
+            <div class="text-center mb-6 relative z-10">
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Net Flow</p>
+                <p class="text-2xl font-black {% if bank.stat_net_flow >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %}" dir="ltr">
+                    {{ bank.stat_net_flow|intcomma }} <span class="text-xs text-slate-500">T</span>
+                </p>
+            </div>
+
+            <div class="space-y-2 relative z-10">
+                <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-arrow-up text-emerald-500 text-xs"></i>
+                        <span class="text-xs text-slate-300">Total Income</span>
+                    </div>
+                    <span class="text-sm font-bold text-emerald-400">{{ bank.stat_income|intcomma }}</span>
+                </div>
+
+                <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-arrow-down text-rose-500 text-xs"></i>
+                        <span class="text-xs text-slate-300">Total Expenses</span>
+                    </div>
+                    <span class="text-sm font-bold text-rose-400">{{ bank.stat_expense|intcomma }}</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-2 relative z-10">
+                <div class="bg-white/5 rounded-lg p-2 text-center">
+                    <p class="text-[9px] text-slate-500 uppercase">Subs</p>
+                    <p class="text-xs font-bold text-white">{{ bank.stat_subs|intcomma }}</p>
+                </div>
+                <div class="bg-white/5 rounded-lg p-2 text-center">
+                    <p class="text-[9px] text-slate-500 uppercase">Other</p>
+                    <p class="text-xs font-bold text-white">{{ bank.stat_other|intcomma }}</p>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="text-center py-10 opacity-50">
+            <p class="text-sm text-slate-500">No banks found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

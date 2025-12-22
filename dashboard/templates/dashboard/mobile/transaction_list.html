@@ -1,0 +1,165 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load humanize %}
+{% load i18n %}
+{% load custom_filters %}
+
+{% block title %}{% trans "Transactions" %}{% endblock %}
+
+{% block content %}
+<div class="pb-24">
+    <div class="bg-[#1e293b] p-4 rounded-b-3xl shadow-lg mb-4 z-20 relative border-b border-white/5">
+        <form method="get" id="filter-form" class="flex flex-col gap-4">
+            <input type="hidden" name="type" value="{{ filter_type }}">
+            <input type="hidden" name="status" value="{{ status_filter }}"> <input type="hidden" name="q" value="{{ search_query }}">
+
+            <div class="flex gap-2">
+                <select name="month" onchange="this.form.submit()" class="flex-1 bg-white/5 border border-white/10 text-white text-sm rounded-xl px-3 py-2 outline-none font-bold">
+                    {% for m in months_list %}
+                        <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>{{ m|month_name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="year" onchange="this.form.submit()" class="flex-1 bg-white/5 border border-white/10 text-white text-sm rounded-xl px-3 py-2 outline-none font-bold">
+                    {% for y in years_list %}
+                        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="relative">
+                <input type="text" name="q" value="{{ search_query }}"
+                       placeholder="{% trans 'Search...' %}"
+                       class="w-full bg-black/20 text-white text-sm rounded-xl py-3 px-4 pl-10 border border-white/5 outline-none focus:border-indigo-500 transition-all">
+                <button type="submit" class="absolute left-3 top-3 text-slate-400">
+                    <i class="fa-solid fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="flex overflow-x-auto px-4 gap-2 mb-6 no-scrollbar">
+        <a href="?type=all&year={{ selected_year }}&month={{ selected_month }}"
+           class="px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border {% if filter_type == 'all' %}bg-white text-slate-900 shadow-lg shadow-white/20{% else %}bg-[#1e293b] text-slate-400 border-white/5{% endif %}">
+           All
+        </a>
+        <a href="?type=sub&year={{ selected_year }}&month={{ selected_month }}"
+           class="px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border {% if filter_type == 'sub' %}bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 border-indigo-500{% else %}bg-[#1e293b] text-slate-400 border-white/5{% endif %}">
+           Subs
+        </a>
+        <a href="?type=expense&year={{ selected_year }}&month={{ selected_month }}"
+           class="px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border {% if filter_type == 'expense' %}bg-rose-500 text-white shadow-lg shadow-rose-500/30 border-rose-500{% else %}bg-[#1e293b] text-slate-400 border-white/5{% endif %}">
+           Expenses
+        </a>
+        <a href="?type=income&year={{ selected_year }}&month={{ selected_month }}"
+           class="px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border {% if filter_type == 'income' %}bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 border-emerald-500{% else %}bg-[#1e293b] text-slate-400 border-white/5{% endif %}">
+           Income
+        </a>
+    </div>
+
+    {% if filter_type == 'sub' %}
+
+    <div class="grid grid-cols-2 gap-3 px-4 mb-6 animate-fade-in-down">
+        <div class="relative overflow-hidden bg-gradient-to-br from-[#1e293b] to-[#0f172a] p-4 rounded-3xl border border-white/10 shadow-xl group">
+            <div class="absolute -right-6 -top-6 w-20 h-20 bg-indigo-500/20 rounded-full blur-2xl group-hover:bg-indigo-500/30 transition-all"></div>
+            <i class="fa-solid fa-server absolute right-3 bottom-3 text-4xl text-white/5 rotate-12"></i>
+            <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Total GB's Sold</p>
+            <p class="text-xl font-black text-white tracking-tight">{{ stats.total_giga }} <span class="text-xs font-bold text-indigo-400">GB</span></p>
+        </div>
+        <div class="relative overflow-hidden bg-gradient-to-br from-indigo-600 to-indigo-900 p-4 rounded-3xl shadow-xl shadow-indigo-500/20 border border-white/10">
+            <div class="absolute -left-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+            <i class="fa-solid fa-coins absolute right-3 bottom-3 text-4xl text-white/10 rotate-12"></i>
+            <p class="text-[10px] uppercase font-bold text-indigo-200 mb-1 tracking-wider">Total Revenue</p>
+            <p class="text-xl font-black text-white tracking-tight">{{ stats.total_revenue|intcomma }}</p>
+        </div>
+        <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 to-emerald-900 p-4 rounded-3xl shadow-xl shadow-emerald-500/20 border border-white/10">
+            <div class="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+            <i class="fa-solid fa-check-circle absolute right-3 bottom-3 text-4xl text-white/10 rotate-12"></i>
+            <p class="text-[10px] uppercase font-bold text-emerald-100 mb-1 tracking-wider">Paid Amount</p>
+            <p class="text-xl font-black text-white tracking-tight">{{ stats.paid_amount|intcomma }}</p>
+        </div>
+        <div class="relative overflow-hidden bg-gradient-to-br from-amber-600 to-amber-900 p-4 rounded-3xl shadow-xl shadow-amber-500/20 border border-white/10">
+            <div class="absolute -left-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+            <i class="fa-solid fa-clock absolute right-3 bottom-3 text-4xl text-white/10 rotate-12"></i>
+            <p class="text-[10px] uppercase font-bold text-amber-100 mb-1 tracking-wider">Unpaid Amount</p>
+            <p class="text-xl font-black text-white tracking-tight">{{ stats.unpaid_amount|intcomma }}</p>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-center gap-2 px-4 mb-6">
+        <a href="?type=sub&status=all&year={{ selected_year }}&month={{ selected_month }}"
+           class="flex-1 py-2 rounded-xl text-center text-xs font-bold transition-all border {% if status_filter == 'all' %}bg-white text-indigo-900 border-white{% else %}bg-[#1e293b] text-slate-400 border-white/5 hover:bg-white/5{% endif %}">
+           All
+        </a>
+        <a href="?type=sub&status=paid&year={{ selected_year }}&month={{ selected_month }}"
+           class="flex-1 py-2 rounded-xl text-center text-xs font-bold transition-all border {% if status_filter == 'paid' %}bg-emerald-500 text-white border-emerald-500{% else %}bg-[#1e293b] text-slate-400 border-white/5 hover:bg-emerald-500/10 hover:text-emerald-400{% endif %}">
+           Paid
+        </a>
+        <a href="?type=sub&status=unpaid&year={{ selected_year }}&month={{ selected_month }}"
+           class="flex-1 py-2 rounded-xl text-center text-xs font-bold transition-all border {% if status_filter == 'unpaid' %}bg-amber-500 text-white border-amber-500{% else %}bg-[#1e293b] text-slate-400 border-white/5 hover:bg-amber-500/10 hover:text-amber-400{% endif %}">
+           Unpaid
+        </a>
+    </div>
+
+    {% endif %}
+
+    <div class="px-4 space-y-3">
+        {% for item in transactions %}
+        <div class="bg-[#1e293b]/80 backdrop-blur-sm p-4 rounded-2xl border border-white/5 relative overflow-hidden active:scale-[0.99] transition-all duration-200">
+            <div class="flex justify-between items-start relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg
+                        {% if item.type == 'expense' %}bg-rose-500/20 text-rose-400 shadow-rose-500/10{% elif item.type == 'sub' %}bg-indigo-500/20 text-indigo-400 shadow-indigo-500/10{% else %}bg-emerald-500/20 text-emerald-400 shadow-emerald-500/10{% endif %}">
+                        <i class="fa-solid {{ item.icon }} text-sm"></i>
+                    </div>
+
+                    <div>
+                        <h4 class="text-sm font-bold text-white leading-tight">{{ item.title }}</h4>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-1">
+                            <span class="font-mono bg-white/5 px-1.5 rounded">{{ item.date }}</span>
+                            {% if item.subtitle %}
+                                <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                                <span class="truncate max-w-[120px]">{{ item.subtitle }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <p class="text-sm font-bold {% if item.is_income %}text-emerald-400{% else %}text-rose-400{% endif %}">
+                        {% if not item.is_income %}-{% else %}+{% endif %}{{ item.amount|intcomma }}
+                    </p>
+                    {% if item.type == 'sub' %}
+                        <div class="mt-1">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-medium
+                                {% if item.status == 'success' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20{% else %}bg-amber-500/10 text-amber-400 border border-amber-500/20{% endif %}">
+                                {% if item.status == 'success' %}Paid{% else %}Unpaid{% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-3 pt-3 border-t border-white/5 flex justify-end gap-2 opacity-80">
+                {% if item.type == 'expense' %}
+                    <a href="{% url 'dashboard:mobile_edit_expense' item.id %}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:bg-indigo-500 hover:text-white transition-colors"><i class="fa-solid fa-pen text-xs"></i></a>
+                    <a href="{% url 'dashboard:mobile_delete_expense' item.id %}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-trash text-xs"></i></a>
+                {% elif item.type == 'sub' %}
+                    <a href="{% url 'dashboard:mobile_edit_subscription' item.id %}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:bg-indigo-500 hover:text-white transition-colors"><i class="fa-solid fa-pen text-xs"></i></a>
+                    <a href="{% url 'dashboard:mobile_delete_subscription' item.id %}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-trash text-xs"></i></a>
+                {% elif item.type == 'income' %}
+                    <a href="{% url 'dashboard:mobile_edit_income' item.id %}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:bg-indigo-500 hover:text-white transition-colors"><i class="fa-solid fa-pen text-xs"></i></a>
+                    <a href="{% url 'dashboard:mobile_delete_income' item.id %}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:bg-rose-500 hover:text-white transition-colors"><i class="fa-solid fa-trash text-xs"></i></a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="flex flex-col items-center justify-center py-16">
+            <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-4 text-slate-600">
+                <i class="fa-solid fa-box-open text-2xl"></i>
+            </div>
+            <p class="text-sm text-slate-500 font-medium">No transactions found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Confirmation" %}{% endblock %}
+
+{% block content %}
+<div class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+    <div class="w-full max-w-sm bg-[#1e293b] rounded-3xl p-6 border border-white/10 shadow-2xl relative overflow-hidden">
+
+        <div class="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+
+        <div class="relative z-10 text-center">
+            <div class="w-16 h-16 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+
+            <h2 class="text-lg font-bold text-white mb-2">{% trans "Are you sure?" %}</h2>
+            <p class="text-sm text-slate-400 mb-6">
+                {% trans "You are about to delete" %} <span class="text-white font-bold">"{{ item_title }}"</span>.
+                <br>{% trans "This action cannot be undone." %}
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="flex gap-3">
+                    <a href="{% url 'dashboard:mobile_transaction_list' %}" class="flex-1 py-3 rounded-xl bg-slate-700 text-white text-sm font-bold transition-colors hover:bg-slate-600">
+                        {% trans "Cancel" %}
+                    </a>
+                    <button type="submit" class="flex-1 py-3 rounded-xl bg-rose-500 text-white text-sm font-bold shadow-lg shadow-rose-500/20 transition-colors hover:bg-rose-600">
+                        {% trans "Yes, Delete" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

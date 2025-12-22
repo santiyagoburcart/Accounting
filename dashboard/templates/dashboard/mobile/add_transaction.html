@@ -1,0 +1,248 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}New Transaction{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+
+<div class="p-6 pb-48">
+
+    <h1 class="text-2xl font-black text-white mb-6">{% trans "Add New" %}</h1>
+
+    <div class="bg-[#1e293b] p-1.5 rounded-2xl flex items-center mb-8 border border-white/5">
+        <button onclick="switchTab('expense')" id="tab-expense" class="flex-1 py-3 rounded-xl text-sm font-bold transition-all text-white bg-rose-500 shadow-lg">Expense</button>
+        <button onclick="switchTab('income')" id="tab-income" class="flex-1 py-3 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-white">Income</button>
+        <button onclick="switchTab('sub')" id="tab-sub" class="flex-1 py-3 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-white">Sub</button>
+    </div>
+
+    <div id="content-expense" class="tab-content">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <input type="hidden" name="add_expense" value="1">
+
+            <div><label class="text-xs text-slate-400 mb-2 block">{% trans "Title / Issue" %}</label>{{ expense_form.issue }}</div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="w-full"><label class="text-xs text-slate-400 mb-2 block">Price (Toman)</label>{{ expense_form.price }}</div>
+                <div class="w-full relative"><label class="text-xs text-slate-400 mb-2 block">Date (Shamsi)</label>
+                    <input type="text" name="expense-spending_date" class="p-datepicker" autocomplete="off" placeholder="YYYY/MM/DD">
+                </div>
+            </div>
+
+            <div><label class="text-xs text-slate-400 mb-2 block">Source Bank</label>{{ expense_form.source_bank }}</div>
+            <div><label class="text-xs text-slate-400 mb-2 block">Description</label>{{ expense_form.description }}</div>
+
+            <div class="flex items-center justify-between bg-[#1e293b] p-4 rounded-xl border border-white/5">
+                <span class="text-sm font-bold text-slate-300">Server Cost?</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="expense-is_server_cost" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                </label>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl shadow-lg shadow-rose-500/30 text-lg mt-4">{% trans "Save Expense" %}</button>
+        </form>
+    </div>
+
+    <div id="content-income" class="hidden tab-content">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <input type="hidden" name="add_other_income" value="1">
+
+            <div><label class="text-xs text-slate-400 mb-2 block">Title</label>{{ income_form.name }}</div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="w-full"><label class="text-xs text-slate-400 mb-2 block">Amount</label>{{ income_form.price }}</div>
+                <div class="w-full relative"><label class="text-xs text-slate-400 mb-2 block">Date (Shamsi)</label>
+                    <input type="text" name="income-deposit_date" class="p-datepicker" autocomplete="off" placeholder="YYYY/MM/DD">
+                </div>
+            </div>
+
+            <div><label class="text-xs text-slate-400 mb-2 block">Destination Bank</label>{{ income_form.destination_bank }}</div>
+            <div><label class="text-xs text-slate-400 mb-2 block">Description</label>{{ income_form.description }}</div>
+
+            <button type="submit" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 text-lg mt-4">{% trans "Save Income" %}</button>
+        </form>
+    </div>
+
+    <div id="content-sub" class="hidden tab-content">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <input type="hidden" name="add_subscription" value="1">
+            <input type="hidden" name="sub-status" id="sub-status-input" value="success">
+
+            <div><label class="text-xs text-slate-400 mb-2 block">Customer</label>{{ sub_form.customer }}</div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="w-full"><label class="text-xs text-slate-400 mb-2 block">Price</label>{{ sub_form.price }}</div>
+                <div class="w-full"><label class="text-xs text-slate-400 mb-2 block">Giga</label>{{ sub_form.giga }}</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="w-full"><label class="text-xs text-slate-400 mb-2 block">Duration (Month)</label>{{ sub_form.month }}</div>
+                <div class="w-full"><label class="text-xs text-slate-400 mb-2 block">Year (Shamsi)</label>{{ sub_form.year }}</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="w-full relative"><label class="text-xs text-slate-400 mb-2 block text-indigo-300">Expire (Gregorian)</label>
+                    <input type="date" name="sub-expire_date" class="w-full bg-[#1e293b] border border-white/10 rounded-xl px-2 py-3 text-white focus:border-indigo-500 text-center font-bold text-xs h-[48px]">
+                </div>
+                 <div class="w-full relative"><label class="text-xs text-slate-400 mb-2 block">Payment (Shamsi)</label>
+                    <input type="text" name="sub-payment_date" class="p-datepicker h-[48px]" autocomplete="off" placeholder="YYYY/MM/DD">
+                </div>
+            </div>
+
+            <div><label class="text-xs text-slate-400 mb-2 block">Destination Bank</label>{{ sub_form.destination_bank }}</div>
+            <div><label class="text-xs text-slate-400 mb-2 block">Referrer (Auto-Fill)</label>{{ sub_form.referrer }}</div>
+
+            <div class="flex items-center justify-between bg-[#1e293b] p-4 rounded-xl border border-white/5 mt-4">
+                <span class="text-sm font-bold text-emerald-400">Paid Status?</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="status-toggle-display" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 text-lg mt-4">{% trans "Save Subscription" %}</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+
+    /* 1. استایل اینپوت‌ها */
+    input:not([type="checkbox"]):not([type="radio"]), select, textarea, .p-datepicker {
+        width: 100%; background-color: #1e293b !important;
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem;
+        padding: 0.75rem 1rem; color: white !important; outline: none;
+        transition: all 0.2s; text-align: center;
+        box-sizing: border-box; font-family: 'Vazirmatn', sans-serif;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 1px #6366f1; }
+
+    /* حل مشکل رنگ توضیحات */
+    textarea { height: 100px !important; text-align: right !important; color: white !important; }
+
+    /* ارتفاع ثابت اینپوت‌ها */
+    input, select, .p-datepicker { height: 48px; }
+
+    select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; }
+
+    /* 2. استایل مودال تقویم */
+    .datepicker-container {
+        position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh;
+        z-index: 999999 !important;
+        background-color: rgba(0,0,0,0.7) !important; /* پس‌زمینه دودی */
+        backdrop-filter: blur(4px);
+    }
+
+    /* باکس تقویم */
+    .datepicker-plot-area {
+        position: fixed !important;
+        top: 50% !important; left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+
+        font-family: 'Vazirmatn', sans-serif !important;
+        width: 300px !important;
+
+        /* ✅ ارتفاع اتوماتیک برای حذف فضای خالی پایین */
+        height: auto !important;
+        min-height: unset !important;
+
+        background-color: #1e293b !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.8) !important;
+        padding: 15px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* هدر تقویم */
+    .datepicker-plot-area .datepicker-header {
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        padding-bottom: 10px !important; margin-bottom: 10px !important;
+    }
+
+    /* ✅ سفید کردن متن هدر (ماه و سال) */
+    .datepicker-plot-area .datepicker-header .btn-switch {
+        color: #ffffff !important;
+        font-weight: 900 !important;
+        font-size: 16px !important;
+        background: transparent !important;
+    }
+    .datepicker-plot-area .datepicker-header .btn-next,
+    .datepicker-plot-area .datepicker-header .btn-prev { color: #6366f1 !important; font-size: 20px !important; }
+
+    /* روزهای هفته */
+    .datepicker-plot-area .datepicker-day-view .month-grid-box .header .header-row-cell { color: #94a3b8 !important; font-size: 12px !important; }
+
+    /* اعداد تقویم */
+    .datepicker-plot-area .datepicker-day-view .table-days td span {
+        width: 34px !important; height: 34px !important; line-height: 34px !important;
+        border-radius: 10px !important; font-size: 14px !important;
+        color: #f1f5f9 !important; background: transparent !important; margin: 1px !important;
+    }
+    /* روز انتخاب شده */
+    .datepicker-plot-area .datepicker-day-view .table-days td.selected span { background-color: #6366f1 !important; color: white !important; }
+
+    /* حذف تولباکس پایین */
+    .datepicker-plot-area .toolbox { display: none !important; }
+</style>
+
+<script>
+    $(document).ready(function() {
+        $(".p-datepicker").pDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: true,
+            onlyTimePicker: false,
+            container: "body",
+            calendar: { persian: { locale: 'en' } },
+            toolbox: { calendarSwitch: { enabled: false } },
+        });
+
+        // لاجیک تاگل‌ها
+        const statusToggle = document.getElementById('status-toggle-display');
+        const statusInput = document.getElementById('sub-status-input');
+        if(statusToggle && statusInput) {
+            statusToggle.addEventListener('change', function() { statusInput.value = this.checked ? 'success' : 'pending'; });
+        }
+
+        try {
+            const pDate = new persianDate();
+            const yearSelect = $('[name="sub-year"]');
+            if(yearSelect.length) { yearSelect.val(pDate.year()).change(); }
+            const monthSelect = $('[name="sub-month"]');
+            if(monthSelect.length) { monthSelect.val(pDate.month()).change(); }
+        } catch(e) { console.log(e); }
+
+        $('[name="sub-customer"]').on('change', function() {
+            const cid = $(this).val();
+            const ref = $('[name="sub-referrer"]');
+            if(cid) {
+                ref.css('opacity',0.5);
+                $.ajax({
+                    url: "{% url 'dashboard:get_customer_details' %}", data: {customer_id: cid},
+                    success: function(d) { ref.css('opacity',1).val(d.referrer_id || ''); }
+                });
+            }
+        });
+    });
+
+    function switchTab(t) {
+        $('.tab-content').addClass('hidden');
+        $('#content-'+t).removeClass('hidden');
+        $('#tab-expense, #tab-income, #tab-sub').attr('class','flex-1 py-3 rounded-xl text-sm font-bold transition-all text-slate-400 hover:text-white');
+        let c = 'bg-indigo-600 text-white shadow-lg';
+        if(t==='expense') c='bg-rose-500 text-white shadow-lg';
+        if(t==='income') c='bg-emerald-500 text-white shadow-lg';
+        $('#tab-'+t).attr('class', `flex-1 py-3 rounded-xl text-sm font-bold transition-all ${c}`);
+    }
+</script>
+{% endblock %}

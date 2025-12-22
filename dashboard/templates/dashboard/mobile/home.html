@@ -1,0 +1,141 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load humanize %}
+{% load i18n %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-0">
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'dashboard:mobile_profile' %}" class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px]">
+                {% if request.user.profile.avatar %}
+                    <img src="{{ request.user.profile.avatar.url }}" class="w-full h-full rounded-full object-cover border-2 border-[#0f172a]">
+                {% else %}
+                    <div class="w-full h-full rounded-full bg-[#0f172a] flex items-center justify-center text-xs font-bold">{{ request.user.username|make_list|first|upper }}</div>
+                {% endif %}
+            </a>
+            <div>
+                <p class="text-xs text-slate-400">Welcome back,</p>
+                <h2 class="text-sm font-bold text-white">{{ request.user.first_name|default:request.user.username }}</h2>
+            </div>
+        </div>
+
+        <div class="bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2">
+            <i class="fa-regular fa-calendar text-indigo-400 text-xs"></i>
+            <span class="text-xs font-bold text-slate-300">
+                {% now "F Y" %} </span>
+        </div>
+    </div>
+
+    <div class="w-full bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 rounded-3xl p-6 shadow-2xl shadow-indigo-500/20 relative overflow-hidden mb-8">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-xl -ml-5 -mb-5"></div>
+
+        <p class="text-indigo-200 text-sm font-medium mb-1">Total Balance</p>
+        <h1 class="text-4xl font-black text-white mb-6 tracking-tight" dir="ltr">
+            {{ total_balance|intcomma }} <span class="text-lg font-normal opacity-70">T</span>
+        </h1>
+
+        <div class="flex gap-4">
+            <div class="flex-1 bg-black/20 rounded-xl p-3 backdrop-blur-sm border border-white/5">
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+                    <span class="text-[10px] text-indigo-200">Income</span>
+                </div>
+                <p class="text-sm font-bold text-emerald-300">+{{ total_income|intcomma }}</p>
+            </div>
+            <div class="flex-1 bg-black/20 rounded-xl p-3 backdrop-blur-sm border border-white/5">
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-rose-400"></div>
+                    <span class="text-[10px] text-indigo-200">Expense</span>
+                </div>
+                <p class="text-sm font-bold text-rose-300">-{{ total_expense|intcomma }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-4 gap-4 px-6 mb-8">
+    <a href="{% url 'dashboard:mobile_bank_list' %}" class="flex flex-col items-center gap-2 group">
+        <div class="w-14 h-14 rounded-2xl bg-[#1e293b] border border-white/5 flex items-center justify-center text-indigo-400 group-active:scale-95 transition-all shadow-lg">
+            <i class="fa-solid fa-building-columns text-xl"></i>
+        </div>
+        <span class="text-[11px] text-slate-400">Banks</span>
+    </a>
+    <a href="{% url 'dashboard:mobile_add_transaction' %}" class="flex flex-col items-center gap-2 group">
+        <div class="w-14 h-14 rounded-2xl bg-[#1e293b] border border-white/5 flex items-center justify-center text-emerald-400 group-active:scale-95 transition-all shadow-lg">
+            <i class="fa-solid fa-money-bill-transfer text-xl"></i>
+        </div>
+        <span class="text-[11px] text-slate-400">Transact</span>
+    </a>
+    <a href="{% url 'dashboard:mobile_financial_report' %}" class="flex flex-col items-center gap-2 group">
+        <div class="w-14 h-14 rounded-2xl bg-[#1e293b] border border-white/5 flex items-center justify-center text-purple-400 group-active:scale-95 transition-all shadow-lg">
+            <i class="fa-solid fa-chart-pie text-xl"></i>
+        </div>
+        <span class="text-[11px] text-slate-400">Reports</span>
+    </a>
+    <a href="{% url 'dashboard:mobile_backup' %}" class="flex flex-col items-center gap-2 group">
+        <div class="w-14 h-14 rounded-2xl bg-[#1e293b] border border-white/5 flex items-center justify-center text-amber-400 group-active:scale-95 transition-all shadow-lg">
+            <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+        </div>
+        <span class="text-[11px] text-slate-400">Backup</span>
+    </a>
+</div>
+
+<div class="bg-[#1e293b] rounded-t-[2.5rem] p-6 pb-32 min-h-[300px] border-t border-white/5">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-bold text-white">Recent Activity</h3>
+        <a href="{% url 'dashboard:mobile_transaction_list' %}" class="text-xs text-indigo-400 font-medium">View All</a>
+    </div>
+
+    <div class="space-y-4">
+        {% for txn in recent_transactions %}
+        <div class="flex items-center justify-between group">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner
+                    {% if txn.type == 'sub' %}
+                        bg-amber-500/10 text-amber-400 border border-amber-500/20
+                    {% elif txn.type == 'expense' %}
+                        bg-rose-500/10 text-rose-500 border border-rose-500/20
+                    {% else %}
+                        bg-emerald-500/10 text-emerald-500 border border-emerald-500/20
+                    {% endif %}">
+
+                    {% if txn.type == 'sub' %}
+                        <i class="fa-solid fa-crown text-lg"></i> {% elif txn.type == 'expense' %}
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    {% else %}
+                        <i class="fa-solid fa-coins text-lg"></i>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h4 class="text-sm font-bold text-white">{{ txn.title }}</h4>
+                    <div class="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                        <span class="font-mono">{{ txn.date|date:"Y/m/d" }}</span>
+                        {% if txn.bank_name %}
+                            <span class="w-1 h-1 rounded-full bg-slate-600"></span>
+                            <span>{{ txn.bank_name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-right">
+                <p class="text-sm font-black tracking-tight
+                    {% if txn.type == 'expense' %}text-rose-400{% else %}text-emerald-400{% endif %}" dir="ltr">
+                    {% if txn.type == 'expense' %}-{% else %}+{% endif %}{{ txn.amount|intcomma }}
+                </p>
+                <p class="text-[10px] text-slate-600">Toman</p>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-10 opacity-50">
+            <i class="fa-solid fa-receipt text-3xl mb-3 text-slate-600"></i>
+            <p class="text-sm text-slate-500">No recent transactions.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

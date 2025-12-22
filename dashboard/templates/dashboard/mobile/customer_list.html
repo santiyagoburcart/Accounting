@@ -1,0 +1,51 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load i18n %}
+
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-24">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-black text-white">Users</h1>
+        <a href="{% url 'dashboard:mobile_customer_add' %}" class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 active:scale-95 transition-transform">
+            <i class="fa-solid fa-plus"></i>
+        </a>
+    </div>
+
+    <form method="get" class="mb-6 relative">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search users..." class="w-full bg-[#1e293b] text-white text-sm rounded-xl py-3 px-4 pl-10 border border-white/5 outline-none focus:border-indigo-500 transition-all shadow-lg">
+        <i class="fa-solid fa-search absolute left-3 top-3.5 text-slate-400"></i>
+    </form>
+
+    <div class="space-y-3">
+        {% for customer in customers %}
+        <div class="bg-[#1e293b] p-4 rounded-2xl border border-white/5 flex items-center justify-between group active:scale-[0.98] transition-all shadow-md">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                    {{ customer.name|make_list|first|upper }}
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">{{ customer.name }}</h3>
+                    <p class="text-xs text-slate-500 font-mono mt-0.5">{{ customer.phone_number|default:"No Phone" }}</p>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <a href="{% url 'dashboard:mobile_customer_delete' customer.id %}" class="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-colors">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </a>
+
+                <a href="{% url 'dashboard:mobile_customer_edit' customer.id %}" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 border border-white/10 hover:bg-indigo-500 hover:text-white transition-colors">
+                    <i class="fa-solid fa-pen text-xs"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-12 opacity-50">
+            <i class="fa-solid fa-users text-4xl mb-3 text-slate-600"></i>
+            <p class="text-sm text-slate-500">No users found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

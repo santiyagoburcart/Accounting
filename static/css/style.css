@@ -365,3 +365,235 @@ html[dir="rtl"] .toggle-password-btn {
     right: auto;
     left: 1rem; /* در حالت فارسی سمت چپ می‌رود */
 }
+
+
+/* --- Mobile App Styles --- */
+
+/* حذف اسکرول‌بار مزاحم در موبایل */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* تنظیمات Safe Area برای آیفون */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+
+/* نوار نویگیشن شیشه‌ای پایین */
+.glass-nav {
+    background: rgba(15, 23, 42, 0.85); /* رنگ پس‌زمینه تیره و شفاف */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* هدر شیشه‌ای موبایل */
+.glass-header {
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* استایل دکمه وسط (FAB) */
+.fab-button {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); /* گرادینت بنفش خودمان */
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    border: 4px solid #0f172a; /* حاشیه همرنگ پس‌زمینه برای جداسازی */
+}
+
+/* اصلاح رنگ اینپوت‌ها در موبایل */
+.mobile-input {
+    background-color: rgba(30, 41, 59, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-radius: 12px !important;
+}
+.mobile-input:focus {
+    border-color: #a855f7 !important;
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2) !important;
+}
+
+/* =========================================
+   Persian Datepicker Customization (PWA)
+   ========================================= */
+
+/* استایل اینپوت‌ها و سلکت‌ها */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea,
+.p-datepicker {
+    width: 100%;
+    background-color: #1e293b !important;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: white !important;
+    outline: none;
+    font-family: 'Vazirmatn', sans-serif;
+    transition: all 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2);
+}
+
+textarea {
+    height: 100px !important;
+}
+
+/* کانتینر اصلی مودال تقویم */
+.datepicker-container {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999999 !important;
+    background-color: rgba(0,0,0,0.7) !important; /* پس‌زمینه دودی */
+    backdrop-filter: blur(5px);
+}
+
+/* باکس تقویم (کوچک و شناور) */
+.datepicker-plot-area {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+
+    width: 280px !important;
+    max-width: 90% !important;
+    height: auto !important;
+    min-height: unset !important;
+
+    background-color: #1e293b !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+    padding: 12px !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+    box-sizing: border-box !important;
+}
+
+/* هدر تقویم */
+.datepicker-plot-area .datepicker-header {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 10px !important;
+}
+
+.datepicker-plot-area .datepicker-header .btn-switch {
+    color: #fff !important;
+    font-weight: bold !important;
+    font-size: 14px !important;
+    background: transparent !important;
+}
+
+.datepicker-plot-area .datepicker-header .btn-next,
+.datepicker-plot-area .datepicker-header .btn-prev {
+    color: #6366f1 !important;
+    font-size: 18px !important;
+}
+
+/* روزهای تقویم */
+.datepicker-plot-area .datepicker-day-view .table-days td span {
+    color: #94a3b8 !important;
+    background: transparent !important;
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    margin: 1px !important;
+    transition: all 0.2s;
+}
+
+/* روز انتخاب شده */
+.datepicker-plot-area .datepicker-day-view .table-days td.selected span {
+    background-color: #6366f1 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* حذف بخش‌های اضافی */
+.datepicker-plot-area .toolbox {
+    display: none !important;
+}
+/* =========================================
+   DARK MODE OVERRIDES (Forms & Datepicker)
+   ========================================= */
+
+/* 1. استایل دارک برای Select Box ها */
+select {
+    width: 100%;
+    background-color: #1e293b; /* Slate-800 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem; /* rounded-xl */
+    padding: 0.75rem 1rem;
+    color: white;
+    font-size: 0.875rem;
+    appearance: none; /* حذف فلش پیش‌فرض مرورگر */
+    outline: none;
+    transition: all 0.2s;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+}
+
+select:focus {
+    border-color: #6366f1; /* Indigo-500 */
+    background-color: #253248;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* 2. استایل دارک برای Persian Datepicker */
+.datepicker-plot-area {
+    background-color: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 1rem !important;
+    font-family: 'Vazirmatn', sans-serif !important;
+}
+
+.datepicker-plot-area .datepicker-header {
+    background-color: #0f172a !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 1rem 1rem 0 0 !important;
+}
+
+.datepicker-plot-area .datepicker-header .btn-next,
+.datepicker-plot-area .datepicker-header .btn-prev,
+.datepicker-plot-area .datepicker-header .btn-switch {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.2s;
+}
+
+.datepicker-plot-area .datepicker-day-view .table-days td span {
+    color: #cbd5e1 !important; /* slate-300 */
+    border-radius: 0.5rem !important;
+    font-size: 0.85rem !important;
+}
+
+.datepicker-plot-area .datepicker-day-view .table-days td span.today {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+    color: #818cf8 !important;
+}
+
+.datepicker-plot-area .datepicker-day-view .table-days td span.selected {
+    background-color: #6366f1 !important; /* Indigo-600 */
+    color: white !important;
+    text-shadow: none !important;
+}
+
+.datepicker-plot-area .datepicker-day-view .table-days td span:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.datepicker-plot-area .datepicker-day-view .month-grid-box .header .header-row-cell {
+    color: #64748b !important;
+}

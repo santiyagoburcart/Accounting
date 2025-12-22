@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'mathfilters',
     'django_filters',
     'django.contrib.humanize',
+    'pwa',
 ]
 
 MIDDLEWARE = [
@@ -45,6 +46,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'dashboard.middleware.MobileRedirectMiddleware',
+    'dashboard.middleware.MobileDetectionMiddleware',
 ]
 
 ROOT_URLCONF = 'Accounting.urls'
@@ -162,3 +165,34 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard:financial_report'
 LOGOUT_REDIRECT_URL = 'login'
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost').split(',')
+
+
+# تنظیمات PWA (به انتهای فایل اضافه کنید)
+PWA_APP_NAME = 'AP Accounting'
+PWA_APP_DESCRIPTION = "Smart Accounting Dashboard"
+PWA_APP_THEME_COLOR = '#0f172a'
+PWA_APP_BACKGROUND_COLOR = '#0f172a'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_ORIENTATION = 'portrait'
+PWA_APP_START_URL = '/'
+PWA_APP_STATUS_BAR_COLOR = 'default'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/images/icon-192.png',
+        'sizes': '192x192'
+    },
+    {
+        'src': '/static/images/icon-512.png',
+        'sizes': '512x512'
+    }
+]
+PWA_APP_ICONS_APPLE = [
+    {
+        'src': '/static/images/icon-192.png',
+        'sizes': '192x192'
+    }
+]
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'js', 'serviceworker.js')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')

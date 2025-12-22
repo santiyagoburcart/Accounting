@@ -1,0 +1,64 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-24 h-screen flex flex-col">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-xl font-black text-white">{{ title }}</h1>
+        <div class="flex gap-3">
+            {% if delete_url %}
+            <a href="{{ delete_url }}" class="w-10 h-10 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-colors">
+                <i class="fa-solid fa-trash"></i>
+            </a>
+            {% endif %}
+
+            <a href="{% url 'dashboard:mobile_bank_list' %}" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 border border-white/10">
+                <i class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+    </div>
+
+    <form method="post" action="{{ action_url }}" class="flex-1 flex flex-col justify-between">
+        {% csrf_token %}
+
+        <div class="space-y-6">
+            <div>
+                <label for="id_bank_name" class="text-xs font-bold text-slate-400 mb-2 block ml-1 uppercase tracking-wider">Bank Name</label>
+                <input type="text" name="bank_name" id="id_bank_name"
+                       value="{{ form.bank_name.value|default:'' }}"
+                       placeholder="e.g. BluBank"
+                       class="w-full bg-[#1e293b] border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:border-indigo-500 focus:bg-[#253248] outline-none transition-all placeholder:text-slate-600 shadow-lg">
+                {% if form.bank_name.errors %}
+                    <p class="text-xs text-rose-400 mt-2 ml-1">{{ form.bank_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="id_account_number" class="text-xs font-bold text-slate-400 mb-2 block ml-1 uppercase tracking-wider">Account Number</label>
+                <input type="text" name="account_number" id="id_account_number"
+                       value="{{ form.account_number.value|default:'' }}"
+                       placeholder="Card or Account Number"
+                       class="w-full bg-[#1e293b] border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:border-indigo-500 focus:bg-[#253248] outline-none transition-all placeholder:text-slate-600 shadow-lg font-mono">
+                {% if form.account_number.errors %}
+                    <p class="text-xs text-rose-400 mt-2 ml-1">{{ form.account_number.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            {% if form.instance.pk %}
+            <div>
+                <label class="text-xs font-bold text-slate-500 mb-2 block ml-1 uppercase tracking-wider">Current Balance (Calculated)</label>
+                <div class="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-4 text-slate-400 text-sm font-mono">
+                   {{ form.instance.balance|default:"0" }} <span class="text-xs">T</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 text-lg mb-4 transition-all active:scale-[0.98]">
+            {% if form.instance.pk %}Update Bank{% else %}Save Bank{% endif %}
+        </button>
+    </form>
+</div>
+{% endblock %}

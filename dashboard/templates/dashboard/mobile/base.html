@@ -1,0 +1,71 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="fa" dir="ltr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}App{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.4.2/css/all.css">
+
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; }
+        /* حذف اسکرول‌بار مزاحم */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body class="bg-[#0f172a] text-white min-h-screen pb-32 relative select-none">
+
+    <main class="w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-[#1e293b]/95 backdrop-blur-xl border-t border-white/5 z-50 pb-safe">
+        <div class="grid grid-cols-5 items-center px-2 py-3 pb-6">
+
+            <a href="{% url 'dashboard:mobile_home' %}" class="flex flex-col items-center gap-1 {% if request.resolver_match.url_name == 'mobile_home' %}text-indigo-400{% else %}text-slate-500 hover:text-indigo-300{% endif %}">
+                <i class="fa-solid fa-house text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Home</span>
+            </a>
+
+            <a href="{% url 'dashboard:mobile_transaction_list' %}" class="flex flex-col items-center gap-1 {% if request.resolver_match.url_name == 'mobile_transaction_list' %}text-indigo-400{% else %}text-slate-500 hover:text-indigo-300{% endif %}">
+                <i class="fa-solid fa-list-check text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Txns</span>
+            </a>
+
+            <div class="relative flex justify-center">
+                <a href="{% url 'dashboard:mobile_add_transaction' %}" class="absolute -top-10 w-14 h-14 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-full shadow-lg shadow-indigo-500/40 text-white border-[4px] border-[#0f172a] flex items-center justify-center active:scale-95 transition-transform">
+                    <i class="fa-solid fa-plus text-2xl"></i>
+                </a>
+            </div>
+
+            <a href="{% url 'dashboard:mobile_customer_list' %}" class="flex flex-col items-center gap-1 {% if request.resolver_match.url_name == 'mobile_customer_list' %}text-indigo-400{% else %}text-slate-500 hover:text-indigo-300{% endif %}">
+                <i class="fa-solid fa-users text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Users</span>
+            </a>
+
+            <a href="{% url 'dashboard:mobile_menu' %}" class="flex flex-col items-center gap-1 {% if request.resolver_match.url_name == 'mobile_menu' %}text-indigo-400{% else %}text-slate-500 hover:text-indigo-300{% endif %}">
+                <i class="fa-solid fa-bars text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Menu</span>
+            </a>
+
+        </div>
+    </nav>
+
+    <div id="toast-container" class="fixed top-4 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="bg-indigo-600/90 backdrop-blur text-white px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-bounce pointer-events-auto text-center border border-white/10">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+</body>
+</html>

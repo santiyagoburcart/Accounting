@@ -1,0 +1,106 @@
+{% extends 'dashboard/mobile/base.html' %}
+{% load i18n %}
+
+{% block title %}Backup & Restore{% endblock %}
+
+{% block content %}
+<div class="p-6 pb-24">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-black text-white">Data Management</h1>
+        <a href="{% url 'dashboard:mobile_menu' %}" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 border border-white/10">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+    </div>
+
+    <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-3xl p-6 shadow-2xl shadow-indigo-500/20 mb-4 relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+
+        <div class="relative z-10">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                    <i class="fa-solid fa-database text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Local Backup</h2>
+                    <p class="text-xs text-indigo-200">Download SQL file</p>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="create_backup" class="w-full py-3 bg-white text-indigo-700 font-bold rounded-xl shadow-lg hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Download SQL
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-sky-500 to-blue-600 rounded-3xl p-6 shadow-2xl shadow-blue-500/20 mb-8 relative overflow-hidden">
+        <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+
+        <div class="relative z-10">
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                    <i class="fa-brands fa-telegram text-3xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Telegram Cloud</h2>
+                    <p class="text-xs text-sky-100">Send SQL to saved chat</p>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="telegram_backup" class="w-full py-3 bg-white/20 border border-white/30 text-white font-bold rounded-xl hover:bg-white/30 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Send to Telegram
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="bg-[#1e293b] rounded-3xl p-6 border border-white/5 relative overflow-hidden">
+        <h3 class="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-rotate-left text-emerald-400"></i> Restore Data
+        </h3>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+
+            <div class="relative border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-emerald-500/50 transition-colors bg-black/20">
+                <input type="file" name="backup_file" id="backup_file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept=".sql,.gz" required onchange="showFileName(this)">
+
+                <div id="upload-placeholder">
+                    <i class="fa-solid fa-file-code text-2xl text-slate-500 mb-2"></i>
+                    <p class="text-xs text-slate-400">Tap to upload <span class="text-emerald-400 font-bold">.sql</span> file</p>
+                </div>
+
+                <div id="file-info" class="hidden">
+                    <i class="fa-solid fa-check-circle text-2xl text-emerald-400 mb-2"></i>
+                    <p id="filename-display" class="text-xs text-white font-mono break-all"></p>
+                </div>
+            </div>
+
+            <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex gap-3 items-start">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm mt-0.5"></i>
+                <p class="text-[10px] text-amber-200 leading-relaxed">
+                    Warning: This will overwrite your current database with the uploaded SQL file.
+                </p>
+            </div>
+
+            <button type="submit" name="restore_backup" class="w-full py-3 bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 font-bold rounded-xl hover:bg-emerald-600 hover:text-white transition-all" onclick="return confirm('Are you sure? This will overwrite data.')">
+                Restore Database
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showFileName(input) {
+        if (input.files && input.files[0]) {
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            document.getElementById('file-info').classList.remove('hidden');
+            document.getElementById('filename-display').innerText = input.files[0].name;
+        }
+    }
+</script>
+{% endblock %}

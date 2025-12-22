@@ -1,0 +1,62 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% trans "Login" %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81] min-h-screen flex items-center justify-center p-6">
+
+    <div class="w-full max-w-sm">
+
+        <div class="flex flex-col items-center mb-10">
+            <div class="relative w-24 h-24 mb-6">
+                <div class="absolute inset-0 bg-indigo-500 blur-2xl opacity-40 animate-pulse"></div>
+                <div class="relative w-full h-full bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-2xl rotate-45 flex items-center justify-center shadow-2xl border-4 border-[#0f172a]">
+                    <div class="w-12 h-12 border-4 border-white rounded-lg -rotate-45"></div>
+                </div>
+            </div>
+
+            <h1 class="text-3xl font-black text-white tracking-tight">Accounting<span class="text-indigo-400">App</span></h1>
+            <p class="text-slate-400 text-sm mt-2">{% trans "Welcome Back, Commander" %}</p>
+        </div>
+
+        <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-center">
+                        <p class="text-red-200 text-xs font-bold">{% trans "Invalid username or password" %}</p>
+                    </div>
+                {% endif %}
+
+                <div class="space-y-4">
+                    <div>
+                        {{ form.username }}
+                    </div>
+                    <div>
+                        {{ form.password }}
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 active:scale-95 transition-all text-lg">
+                    {% trans "Login to Dashboard" %}
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-slate-500 text-xs mt-8">
+            &copy; {% now "Y" %} Accounting System v2.0
+        </p>
+    </div>
+
+</body>
+</html>
