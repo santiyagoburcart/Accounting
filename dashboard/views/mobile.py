@@ -863,7 +863,8 @@ def mobile_customer_list_view(request):
 def mobile_customer_add_view(request):
     """ افزودن مشتری جدید """
     if request.method == 'POST':
-        form = CustomerProfileForm(request.POST)
+        # تغییر: پاس دادن user=request.user
+        form = CustomerProfileForm(request.POST, user=request.user)
         if form.is_valid():
             obj = form.save(commit=False)
             obj.creator = request.user
@@ -871,14 +872,15 @@ def mobile_customer_add_view(request):
             messages.success(request, _("Customer added successfully."))
             return redirect('dashboard:mobile_customer_list')
     else:
-        form = CustomerProfileForm()
+        # تغییر: پاس دادن user=request.user
+        form = CustomerProfileForm(user=request.user)
 
     context = {
         'form': form,
         'title': _('Add Customer'),
         'action_url': request.path
     }
-    return render(request, 'dashboard/mobile/edit_generic.html', context)  # استفاده از قالب عمومی ادیت
+    return render(request, 'dashboard/mobile/edit_generic.html', context)
 
 
 @login_required
@@ -886,13 +888,15 @@ def mobile_customer_edit_view(request, pk):
     """ ویرایش مشتری """
     obj = get_object_or_404(CustomerProfile, pk=pk, creator=request.user)
     if request.method == 'POST':
-        form = CustomerProfileForm(request.POST, instance=obj)
+        # تغییر: پاس دادن user=request.user
+        form = CustomerProfileForm(request.POST, instance=obj, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, _("Customer updated."))
             return redirect('dashboard:mobile_customer_list')
     else:
-        form = CustomerProfileForm(instance=obj)
+        # تغییر: پاس دادن user=request.user
+        form = CustomerProfileForm(instance=obj, user=request.user)
 
     context = {
         'form': form,

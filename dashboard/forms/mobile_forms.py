@@ -2,6 +2,10 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import gettext_lazy as _
 
+#from django.core.exceptions import ValidationError
+#from ..models import Subscription, CustomerProfile
+
+
 class MobileAuthenticationForm(AuthenticationForm):
     """
     فرم لاگین مخصوص موبایل با اینپوت‌های بزرگ و تیره
@@ -19,3 +23,6 @@ class MobileAuthenticationForm(AuthenticationForm):
             'placeholder': '••••••••',
         })
     )
+
+
+

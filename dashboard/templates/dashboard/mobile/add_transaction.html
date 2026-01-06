@@ -10,6 +10,9 @@
 <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
 <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <div class="p-6 pb-48">
 
     <h1 class="text-2xl font-black text-white mb-6">{% trans "Add New" %}</h1>
@@ -116,7 +119,7 @@
 <style>
     @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
 
-    /* 1. استایل اینپوت‌ها */
+    /* General Inputs (Center aligned) */
     input:not([type="checkbox"]):not([type="radio"]), select, textarea, .p-datepicker {
         width: 100%; background-color: #1e293b !important;
         border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem;
@@ -126,88 +129,121 @@
     }
     input:focus, select:focus, textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 1px #6366f1; }
 
-    /* حل مشکل رنگ توضیحات */
-    textarea { height: 100px !important; text-align: right !important; color: white !important; }
-
-    /* ارتفاع ثابت اینپوت‌ها */
+    textarea { height: 100px !important; text-align: left !important; color: white !important; }
     input, select, .p-datepicker { height: 48px; }
 
-    select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; }
+    select.select2-hidden-accessible { display: none !important; }
 
-    /* 2. استایل مودال تقویم */
+    /* ------------------------------------------- */
+    /* Select2 Dark Mode & LTR Styles (English)    */
+    /* ------------------------------------------- */
+    .select2-container { width: 100% !important; }
+
+    .select2-container--default .select2-selection--single {
+        background-color: #1e293b !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 0.75rem !important;
+        height: 48px !important;
+        display: flex; align-items: center;
+        direction: ltr; /* Left to Right */
+    }
+
+    /* Selected Text (Left Aligned) */
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: white !important;
+        font-family: 'Vazirmatn', sans-serif;
+        line-height: 48px !important;
+        padding-left: 15px !important;  /* Space from left */
+        padding-right: 30px !important; /* Space from right (for arrow) */
+        text-align: left !important;    /* FORCE LEFT ALIGN */
+        width: 100%;
+    }
+
+    /* Arrow (Right Side) */
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 46px !important;
+        right: 10px !important; /* Arrow on the right */
+        left: auto !important;
+        top: 1px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b {
+        border-color: #94a3b8 transparent transparent transparent !important;
+    }
+
+    /* Dropdown Body */
+    .select2-dropdown {
+        background-color: #0f172a !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 0.75rem !important;
+        color: white !important;
+        overflow: hidden;
+        z-index: 9999;
+        text-align: left !important; /* Dropdown content left aligned */
+    }
+
+    /* Search Input (Left Aligned) */
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+        background-color: #1e293b !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border-radius: 0.5rem !important;
+        font-family: 'Vazirmatn', sans-serif;
+        text-align: left !important; /* Search text left aligned */
+        padding-left: 10px;
+    }
+
+    /* Options List (Left Aligned) */
+    .select2-results__option {
+        font-family: 'Vazirmatn', sans-serif;
+        padding: 10px 15px;
+        font-size: 14px;
+        text-align: left !important; /* Options left aligned */
+    }
+
+    .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+        background-color: #6366f1 !important;
+        color: white !important;
+    }
+    .select2-container--default .select2-results__option--selected {
+        background-color: rgba(99, 102, 241, 0.2) !important;
+    }
+
+    /* Datepicker Modal Styles */
     .datepicker-container {
         position: fixed !important; top: 0; left: 0; width: 100vw; height: 100vh;
-        z-index: 999999 !important;
-        background-color: rgba(0,0,0,0.7) !important; /* پس‌زمینه دودی */
-        backdrop-filter: blur(4px);
+        z-index: 999999 !important; background-color: rgba(0,0,0,0.7) !important; backdrop-filter: blur(4px);
     }
-
-    /* باکس تقویم */
     .datepicker-plot-area {
-        position: fixed !important;
-        top: 50% !important; left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-
-        font-family: 'Vazirmatn', sans-serif !important;
-        width: 300px !important;
-
-        /* ✅ ارتفاع اتوماتیک برای حذف فضای خالی پایین */
-        height: auto !important;
-        min-height: unset !important;
-
-        background-color: #1e293b !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        border-radius: 20px !important;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.8) !important;
-        padding: 15px !important;
-        box-sizing: border-box !important;
+        position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important;
+        font-family: 'Vazirmatn', sans-serif !important; width: 300px !important; height: auto !important;
+        background-color: #1e293b !important; border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 20px !important; padding: 15px !important;
     }
-
-    /* هدر تقویم */
-    .datepicker-plot-area .datepicker-header {
-        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-        padding-bottom: 10px !important; margin-bottom: 10px !important;
-    }
-
-    /* ✅ سفید کردن متن هدر (ماه و سال) */
-    .datepicker-plot-area .datepicker-header .btn-switch {
-        color: #ffffff !important;
-        font-weight: 900 !important;
-        font-size: 16px !important;
-        background: transparent !important;
-    }
-    .datepicker-plot-area .datepicker-header .btn-next,
-    .datepicker-plot-area .datepicker-header .btn-prev { color: #6366f1 !important; font-size: 20px !important; }
-
-    /* روزهای هفته */
-    .datepicker-plot-area .datepicker-day-view .month-grid-box .header .header-row-cell { color: #94a3b8 !important; font-size: 12px !important; }
-
-    /* اعداد تقویم */
+    .datepicker-plot-area .datepicker-header .btn-switch { color: #ffffff !important; font-weight: 900 !important; }
+    .datepicker-plot-area .datepicker-header .btn-next, .datepicker-plot-area .datepicker-header .btn-prev { color: #6366f1 !important; }
     .datepicker-plot-area .datepicker-day-view .table-days td span {
         width: 34px !important; height: 34px !important; line-height: 34px !important;
-        border-radius: 10px !important; font-size: 14px !important;
-        color: #f1f5f9 !important; background: transparent !important; margin: 1px !important;
+        border-radius: 10px !important; color: #f1f5f9 !important;
     }
-    /* روز انتخاب شده */
     .datepicker-plot-area .datepicker-day-view .table-days td.selected span { background-color: #6366f1 !important; color: white !important; }
-
-    /* حذف تولباکس پایین */
     .datepicker-plot-area .toolbox { display: none !important; }
 </style>
 
 <script>
     $(document).ready(function() {
         $(".p-datepicker").pDatepicker({
-            format: 'YYYY/MM/DD',
-            autoClose: true,
-            initialValue: true,
-            onlyTimePicker: false,
-            container: "body",
-            calendar: { persian: { locale: 'en' } },
-            toolbox: { calendarSwitch: { enabled: false } },
+            format: 'YYYY/MM/DD', autoClose: true, initialValue: true, onlyTimePicker: false,
+            container: "body", calendar: { persian: { locale: 'en' } }, toolbox: { calendarSwitch: { enabled: false } },
         });
 
-        // لاجیک تاگل‌ها
+        // Initialize Select2 (LTR - Default)
+        $('.select2-enable').select2({
+            width: '100%',
+            language: {
+                noResults: function() { return "No results found"; }
+            }
+        });
+
         const statusToggle = document.getElementById('status-toggle-display');
         const statusInput = document.getElementById('sub-status-input');
         if(statusToggle && statusInput) {
@@ -217,19 +253,22 @@
         try {
             const pDate = new persianDate();
             const yearSelect = $('[name="sub-year"]');
-            if(yearSelect.length) { yearSelect.val(pDate.year()).change(); }
+            if(yearSelect.length) { yearSelect.val(pDate.year()).trigger('change'); }
             const monthSelect = $('[name="sub-month"]');
-            if(monthSelect.length) { monthSelect.val(pDate.month()).change(); }
+            if(monthSelect.length) { monthSelect.val(pDate.month()).trigger('change'); }
         } catch(e) { console.log(e); }
 
         $('[name="sub-customer"]').on('change', function() {
             const cid = $(this).val();
             const ref = $('[name="sub-referrer"]');
             if(cid) {
-                ref.css('opacity',0.5);
+                ref.next('.select2-container').css('opacity',0.5);
                 $.ajax({
                     url: "{% url 'dashboard:get_customer_details' %}", data: {customer_id: cid},
-                    success: function(d) { ref.css('opacity',1).val(d.referrer_id || ''); }
+                    success: function(d) {
+                        ref.val(d.referrer_id || '').trigger('change');
+                        ref.next('.select2-container').css('opacity',1);
+                    }
                 });
             }
         });
